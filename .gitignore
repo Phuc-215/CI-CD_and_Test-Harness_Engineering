@@ -1,0 +1,4 @@
+node_modules/
+*.sqlite
+.env
+frontend-admin/package-lock.json
