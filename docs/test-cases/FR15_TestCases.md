@@ -72,9 +72,12 @@
 | TC_FR15_D3 | I2 | Chuỗi 300 ký tự | `100,000` | `1` | Admin | Lỗi Tên quá dài |
 | TC_FR15_D4 | I3 | `Sản phẩm A` | `0` | `1` | Admin | Lỗi Giá > 0 |
 | TC_FR15_D5 | I4 | `Sản phẩm A` | `-50,000` | `1` | Admin | Lỗi Giá > 0 |
-| TC_FR15_D6 | I6 | `Sản phẩm A` | `100,000` | `9999` (Fake)| Admin | Lỗi Danh mục |
-| TC_FR15_D7 | I8 | `Sản phẩm A` | `100,000` | `1` | User | 403 Forbidden |
-| TC_FR15_D8 | I9 | `Sản phẩm A` | `100,000` | `1` | Guest | 401 Unauthorized|
+| TC_FR15_D6 | I5 | `Sản phẩm A` | `` | `1` | Admin | Lỗi Giá trống |
+| TC_FR15_D7 | I6 | `Sản phẩm A` | `100,000` | `9999` (Fake)| Admin | Lỗi Danh mục không tồn tại |
+| TC_FR15_D8 | I7 | `Sản phẩm A` | `100,000` | `` | Admin | Lỗi Danh mục trống |
+| TC_FR15_D9 | I8 | `Sản phẩm A` | `100,000` | `1` | User | 403 Forbidden |
+| TC_FR15_D10| I9 | `Sản phẩm A` | `100,000` | `1` | Guest | 401 Unauthorized|
+
 
 ---
 

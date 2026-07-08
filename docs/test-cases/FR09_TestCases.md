@@ -17,6 +17,15 @@ Tại bước Checkout, người dùng có thể nhập mã giảm giá. Hệ th
 - Loại `fixed`: `discount_amount = discount_value`
 - `final_amount = total - discount_amount`
 
+**Mã giảm giá mẫu trong hệ thống:**
+
+| Mã        | Loại    | Giá trị   | Ngưỡng tối thiểu | Hạn dùng   | Số lần/người |
+| --------- | ------- | --------- | ---------------- | ---------- | ------------ |
+| `SAVE10`  | percent | 10%       | 300,000 ₫        | 2099-12-31 | 1            |
+| `BIGBUY`  | fixed   | 50,000 ₫  | 500,000 ₫        | 2099-12-31 | 1            |
+| `VIP100`  | fixed   | 100,000 ₫ | 300,000 ₫        | 2099-12-31 | 2            |
+| `EXPIRED` | percent | 20%       | 100,000 ₫        | 2020-01-01 | 1            |
+
 ---
 
 ## Phần 1: Domain Testing Workflow
@@ -77,10 +86,12 @@ Tại bước Checkout, người dùng có thể nhập mã giảm giá. Hệ th
 | TC_FR09_D1 | V1,V2,V3,V4,V5,V6 | `SAVE10` | 400,000 | Hợp lệ | 0 | Chấp nhận, discount=40k |
 | TC_FR09_D2 | V1,V2,V3,V4,V5,V7 | `BIGBUY` | 600,000 | Hợp lệ | 0 | Chấp nhận, discount=50k |
 | TC_FR09_D3 | I1 | `KHONGCO` | 400,000 | Hợp lệ | 0 | Từ chối - Không tồn tại |
-| TC_FR09_D4 | I3 | `EXPIRED` | 400,000 | Hợp lệ | 0 | Từ chối - Hết hạn |
-| TC_FR09_D5 | I4 | `SAVE10` | 200,000 | Hợp lệ | 0 | Từ chối - Chưa đủ ngưỡng |
-| TC_FR09_D6 | I5 | `SAVE10` | 400,000 | Trống | 0 | 401 Unauthorized |
-| TC_FR09_D7 | I6 | `SAVE10` | 400,000 | Hợp lệ | 1 | Từ chối - Hết lượt |
+| TC_FR09_D4 | I2 | `LOCKEDCODE` | 400,000 | Hợp lệ | 0 | Từ chối - Mã không hoạt động |
+| TC_FR09_D5 | I3 | `EXPIRED` | 400,000 | Hợp lệ | 0 | Từ chối - Hết hạn |
+| TC_FR09_D6 | I4 | `SAVE10` | 200,000 | Hợp lệ | 0 | Từ chối - Chưa đủ ngưỡng |
+| TC_FR09_D7 | I5 | `SAVE10` | 400,000 | Trống | 0 | 401 Unauthorized |
+| TC_FR09_D8 | I6 | `SAVE10` | 400,000 | Hợp lệ | 1 | Từ chối - Hết lượt |
+
 
 ### Step 6 & 7 — Coverage & Reconcile
 - Tất cả 5 điều kiện (C1->C5) đều bị bẻ gãy thử ít nhất 1 lần (Single-fault).

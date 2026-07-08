@@ -1,5 +1,10 @@
 # FR-04: Quản lý hồ sơ cá nhân - Test Design
 
+- Người dùng đã đăng nhập có thể cập nhật: **Họ Tên**, **Số điện thoại**, **Địa chỉ giao hàng mặc định**.
+- **Số điện thoại hợp lệ**: bắt đầu bằng số `0`, từ 10–11 chữ số.
+- Email không được phép thay đổi qua giao diện.
+- Người dùng chỉ có thể cập nhật hồ sơ của chính mình; không thể tự thay đổi thuộc tính `role`.
+
 Áp dụng kỹ thuật Domain Testing dựa theo hướng dẫn từ skill `domain-testing`.
 
 ## Step 1 — Variable inventory

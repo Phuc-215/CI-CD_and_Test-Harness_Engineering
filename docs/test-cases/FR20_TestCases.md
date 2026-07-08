@@ -69,6 +69,8 @@
 | TC_FR20_D4 | I4 | `test@eshop.com` | `WrongPass` | attempts=0 | 401 |
 | TC_FR20_D5 | I3 | `""` | `Test1234!` | attempts=0 | 401 |
 | TC_FR20_D6 | I5 | `test@eshop.com` | `""` | attempts=0 | 401 |
+| TC_FR20_D7 | I6, I7 | `test@eshop.com` | `Test1234!` | attempts=3, locked_until >= now | 403 Tài khoản đang bị tạm khóa |
+
 
 ---
 
