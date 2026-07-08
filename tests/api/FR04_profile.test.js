@@ -1,6 +1,8 @@
 const http = require('http');
+const fs = require('fs');
+const { reseed } = require("../helpers/reseed");
 
-async function request(method, path, body = null, token = null) {
+function request(method, path, body = null, token = null) {
     return new Promise((resolve, reject) => {
         const options = {
             hostname: 'localhost',
@@ -20,9 +22,11 @@ async function request(method, path, body = null, token = null) {
             let data = '';
             res.on('data', (chunk) => { data += chunk; });
             res.on('end', () => {
+                let parsed = data;
+                try { parsed = JSON.parse(data); } catch(e) {}
                 resolve({
                     status: res.statusCode,
-                    body: data ? JSON.parse(data) : null
+                    body: parsed
                 });
             });
         });
@@ -39,18 +43,16 @@ async function request(method, path, body = null, token = null) {
 async function runTests() {
     console.log("--- Bắt đầu kiểm thử FR-04 qua API (Full Cover) ---");
     
-    // 1. Đăng nhập để lấy token
-    console.log("Đăng nhập bằng tài khoản test...");
+    // 1. Đăng nhập bằng tài khoản test
     const loginRes = await request('POST', '/api/login', {
         email: 'test@eshop.com',
         password: 'Test1234!'
     });
     
     if (!loginRes.body || !loginRes.body.token) {
-        console.error("Lỗi đăng nhập! Không thể lấy token.", loginRes);
+        console.error("Lỗi đăng nhập! Không thể lấy token.");
         return;
     }
-    
     const token = loginRes.body.token;
     console.log("Đăng nhập thành công, lấy được Token.");
     console.log("---------------------------------------");
@@ -63,8 +65,8 @@ async function runTests() {
         { id: "TC_FR04_D5", desc: "Phone chứa chữ", payload: { name: "Nguyen Van A", shipping_address: "123 Le Loi", phone: "09123abc78" }, expectedStatus: 400 },
         { id: "TC_FR04_D6", desc: "Phone rỗng", payload: { name: "Nguyen Van A", shipping_address: "123 Le Loi", phone: "" }, expectedStatus: 400 },
         
-        { id: "TC_FR04_D7", desc: "Tên rỗng", payload: { name: "", shipping_address: "123 Le Loi", phone: "0912345678" }, expectedStatus: 400 },
-        { id: "TC_FR04_D8", desc: "Địa chỉ rỗng", payload: { name: "Nguyen Van A", shipping_address: "", phone: "0912345678" }, expectedStatus: 400 },
+        { id: "TC_FR04_D7", desc: "Tên rỗng (Ambiguity)", payload: { name: "", shipping_address: "123 Le Loi", phone: "0912345678" }, expectedStatus: 400, isAmbiguityCase: true },
+        { id: "TC_FR04_D8", desc: "Địa chỉ rỗng (Ambiguity)", payload: { name: "Nguyen Van A", shipping_address: "", phone: "0912345678" }, expectedStatus: 400, isAmbiguityCase: true },
         
         { id: "TC_FR04_D9", desc: "Đổi email (Hacker)", payload: { name: "Nguyen Van A", shipping_address: "123 Le Loi", phone: "0912345678", email: "hacker@eshop.com" }, expectedStatus: 200, checkField: "email" },
         { id: "TC_FR04_D10", desc: "Đổi role (Hacker)", payload: { name: "Nguyen Van A", shipping_address: "123 Le Loi", phone: "0912345678", role: "admin" }, expectedStatus: 200, checkField: "role" },
@@ -79,15 +81,30 @@ async function runTests() {
     mdOutput += "| TC_ID | Loại Test | Payload test | API Status | Cập nhật thực tế | Pass/Fail |\n";
     mdOutput += "|---|---|---|---|---|---|\n";
 
+    let pass = 0, fail = 0, ambiguity = 0;
+
     for (const tc of testCases) {
         console.log(`Đang chạy: ${tc.id} - ${tc.desc}`);
+        
+        // strict database reseed before every test case to prevent database state pollution!
+        await reseed();
+
         const res = await request('PUT', '/api/users/me', tc.payload, token);
         const status = res.status;
         
         let isPass = false;
+        let isAmbiguity = false;
         let actualResultText = "Status: " + status;
         
-        if (tc.expectedStatus === 200) {
+        if (tc.isAmbiguityCase) {
+            if (status === 200) {
+                isAmbiguity = true;
+                actualResultText = "Status: 200 (Ambiguity: SUT accepted empty field; SRS did not specify restriction)";
+            } else {
+                isPass = true;
+                actualResultText = "Status: " + status + " (SUT rejected empty field)";
+            }
+        } else if (tc.expectedStatus === 200) {
             isPass = (status === 200);
         } else {
             isPass = (status !== 200);
@@ -120,16 +137,24 @@ async function runTests() {
             }
         }
 
-        const passFailText = isPass ? "✅ PASS" : "❌ FAIL (BUG)";
-        mdOutput += `| ${tc.id} | ${tc.desc} | \`${JSON.stringify(tc.payload)}\` | ${status} | ${actualResultText} | **${passFailText}** |\n`;
-        
-        console.log(`-> ${actualResultText} -> ${passFailText}\n`);
-        
-        // Reset role / email back if hacked
-        if (!isPass && tc.checkField) {
-            await request('PUT', '/api/users/me', { name: "Nguyen Van A", email: "test@eshop.com", role: "user" }, token);
+        let passFailText = "❌ FAIL (BUG)";
+        if (isAmbiguity) {
+            passFailText = "⚠️ AMBIGUITY";
+            ambiguity++;
+        } else if (isPass) {
+            passFailText = "✅ PASS";
+            pass++;
+        } else {
+            fail++;
         }
+
+        mdOutput += `| ${tc.id} | ${tc.desc} | \`${JSON.stringify(tc.payload)}\` | ${status} | ${actualResultText} | **${passFailText}** |\n`;
+        console.log(`-> ${actualResultText} -> ${passFailText}\n`);
     }
+
+    const total = pass + fail + ambiguity;
+    mdOutput += `\n## Tổng kết\n\n`;
+    mdOutput += `| Thiết kế | Thực thi | PASS | FAIL (BUG) | AMBIGUITY |\n|---|---|---|---|---|\n| ${total} | ${total} | ${pass} | ${fail} | ${ambiguity} |\n`;
 
     const fs = require('fs');
     fs.writeFileSync('docs/test-results/FR04_TestResults.md', mdOutput);

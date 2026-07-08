@@ -13,7 +13,7 @@ offending source line. Severity: **Critical** (security / data corruption) > **H
 | BUG-04 | FR-04 | **Critical** | Leo thang đặc quyền: đổi `role`→admin qua cập nhật hồ sơ (vi phạm SEC-06) | TC_FR04_D10 | server.js:124-127 |
 | BUG-05 | FR-04 | High | Không validate số điện thoại (prefix/độ dài/ký tự) | TC_FR04_D2–D6, B1, B4 | server.js:118-135 |
 | BUG-06 | FR-09 | **Critical** | Công thức giảm giá `percent` sai → `discount_amount` âm khổng lồ, `final_amount` > tổng | TC_FR09_D1 (`discount=-3,600,000`) | server.js:399 |
-| BUG-07 | FR-09 | High | `/api/apply-coupon` thiếu xác thực (C4 không thực thi) → khách vãng lai áp mã được | TC_FR09_D6 | server.js:363 |
+| BUG-07 | FR-09 | High | `/api/apply-coupon` thiếu xác thực (C4 không thực thi) → khách vãng lai áp mã được | TC_FR09_D7 | server.js:363 |
 | BUG-08 | FR-09 | Medium | Off-by-one ngưỡng đơn: dùng `>` thay vì `>=` → đơn == `min_order_amount` bị từ chối | TC_FR09_B2 | server.js:379 |
 | BUG-09 | FR-15 | **Critical** | Thiếu kiểm soát truy cập trên `POST/PUT/DELETE /api/products` (vi phạm FR-12/SEC-03) | TC_FR15_D9, D10, DEL1 | server.js:167,179,191 |
 | BUG-10 | FR-15 | High | Không validate đầu vào sản phẩm (name rỗng/>255, price 0/âm/rỗng, category không tồn tại/rỗng) | TC_FR15_D2–D8, B1,B4,B5,B6 | server.js:167-177 |

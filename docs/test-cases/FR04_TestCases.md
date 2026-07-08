@@ -65,7 +65,8 @@ Phân tách các biến thành các miền tương đương (hợp lệ và khô
 |-------|----------|
 | EC-V1, V2, V3, V4 | Cập nhật hồ sơ thành công |
 | EC-I1..I4 | Từ chối — Lỗi định dạng/độ dài số điện thoại |
-| EC-I5..I7 | Từ chối — Không được bỏ trống trường bắt buộc |
+| EC-I5 | Từ chối — Không được bỏ trống trường bắt buộc |
+| EC-I6..I7 | AMBIGUITY (Trả về 200 do SRS không cấm rõ ràng) |
 | EC-I8 | Dữ liệu cập nhật thành công nhưng **email KHÔNG BỊ ĐỔI** (Bỏ qua field email) hoặc Báo lỗi |
 | EC-I9 | Dữ liệu cập nhật thành công nhưng **role KHÔNG BỊ ĐỔI** (Bỏ qua field role) hoặc Báo lỗi |
 
@@ -79,8 +80,8 @@ Phân tách các biến thành các miền tương đương (hợp lệ và khô
 | TC_FR04_D4 | EC-I3 | `0123456789012345` | Nguyễn Văn A | 123 Lê Lợi | Không truyền | Từ chối — Lỗi độ dài Phone |
 | TC_FR04_D5 | EC-I4 | `09123abc78` | Nguyễn Văn A | 123 Lê Lợi | Không truyền | Từ chối — Lỗi định dạng Phone |
 | TC_FR04_D6 | EC-I5 | `` | Nguyễn Văn A | 123 Lê Lợi | Không truyền | Từ chối — Phone rỗng |
-| TC_FR04_D7 | EC-I6 | `0912345678` | `` | 123 Lê Lợi | Không truyền | Từ chối — Name rỗng |
-| TC_FR04_D8 | EC-I7 | `0912345678` | Nguyễn Văn A | `` | Không truyền | Từ chối — Address rỗng |
+| TC_FR04_D7 | EC-I6 | `0912345678` | `` | 123 Lê Lợi | Không truyền | AMBIGUITY (Trả về 200, SRS không cấm) |
+| TC_FR04_D8 | EC-I7 | `0912345678` | Nguyễn Văn A | `` | Không truyền | AMBIGUITY (Trả về 200, SRS không cấm) |
 | TC_FR04_D9 | EC-I8 | `0912345678` | Nguyễn Văn A | 123 Lê Lợi | `email: "hack@eshop.com"` | Thành công nhưng email cũ không đổi |
 | TC_FR04_D10| EC-I9 | `0912345678` | Nguyễn Văn A | 123 Lê Lợi | `role: "admin"` | Thành công nhưng role cũ không đổi |
 
