@@ -132,8 +132,8 @@ async function runTests() {
     }
 
     const fs = require('fs');
-    fs.writeFileSync('FR04_TestResults.md', mdOutput);
-    console.log("Đã xuất kết quả ra file FR04_TestResults.md");
+    fs.writeFileSync('docs/test-results/FR04_TestResults.md', mdOutput);
+    console.log("Đã xuất kết quả ra file docs/test-results/FR04_TestResults.md");
 }
 
 runTests();

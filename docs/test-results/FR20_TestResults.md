@@ -10,6 +10,7 @@
 | TC_FR20_D4 | Domain - Sai mật khẩu (I4) | `{pass:WrongPass}` | 401 | {"error":"Invalid email or password"} | **✅ PASS** |
 | TC_FR20_D5 | Domain - Email rỗng (I3) | `{email:""}` | 401 | {"error":"Invalid email or password"} | **✅ PASS** |
 | TC_FR20_D6 | Domain - Mật khẩu rỗng (I5) | `{password:""}` | 401 | {"error":"Invalid email or password"} | **✅ PASS** |
+| TC_FR20_D7 | Domain - Đăng nhập khi bị khóa (I6,I7) | `{email:test, pass:Test1234!}` | 403 | {"error":"Tài khoản đã bị khóa. Vui lòng thử lại sau."} | **✅ PASS** |
 | TC_FR20_B_COUNT | BVA - Sau 1 lần sai, bộ đếm phải = 1 | `1x sai -> đọc login_attempts` | - | login_attempts = 2 (mong đợi 1) | **❌ FAIL (BUG)** |
 | TC_FR20_B1 | BVA - Sai lần 1 (OFF, chưa khóa) | `{pass:WrongPass}` | 401 | {"error":"Invalid email or password"} | **✅ PASS** |
 | TC_FR20_B2 | BVA - Sai lần 2 (OFF, chưa khóa) | `{pass:WrongPass}` | 401 | {"error":"Invalid email or password"} | **✅ PASS** |
@@ -22,4 +23,4 @@
 
 | Thiết kế | Thực thi | PASS | FAIL (BUG) |
 |---|---|---|---|
-| 13 | 13 | 9 | 4 |
+| 14 | 14 | 10 | 4 |

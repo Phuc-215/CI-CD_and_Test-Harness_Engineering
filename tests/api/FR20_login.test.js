@@ -68,6 +68,15 @@ async function runTests() {
   r = await request("POST", "/api/login", { email: "test@eshop.com", password: "" });
   row("TC_FR20_D6", "Domain - Mật khẩu rỗng (I5)", '{password:""}', r.status, JSON.stringify(r.body), r.status === 401);
 
+  // Đăng nhập sai 3 lần để tạo trạng thái khóa cho TC_FR20_D7
+  await reseed();
+  await request("POST", "/api/login", { email: "test@eshop.com", password: "WrongPass" });
+  await request("POST", "/api/login", { email: "test@eshop.com", password: "WrongPass" });
+  await request("POST", "/api/login", { email: "test@eshop.com", password: "WrongPass" });
+  r = await request("POST", "/api/login", { email: "test@eshop.com", password: "Test1234!" });
+  row("TC_FR20_D7", "Domain - Đăng nhập khi bị khóa (I6,I7)", '{email:test, pass:Test1234!}', r.status, JSON.stringify(r.body), r.status === 403);
+
+
   // ---------- Phần 2: BVA — cơ chế đếm & khóa ----------
   // BVA-COUNT: Spec — mỗi lần sai tăng bộ đếm ĐÚNG 1. Kiểm tra trực tiếp qua admin API.
   await reseed();

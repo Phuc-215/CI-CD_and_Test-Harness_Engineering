@@ -56,14 +56,14 @@ async function runTests() {
     console.log(`Đăng nhập thành công, Token OK. User ID: ${userId}`);
     console.log("---------------------------------------");
 
-    // Định nghĩa Test Cases
     const testCases = [
-        { id: "TC_FR09_D1", desc: "Domain - SAVE10 Hợp lệ", payload: { code: "SAVE10", total_amount: 400000, user_id: userId }, useToken: true, expectedStatus: 200, checkDiscount: 40000 },
-        { id: "TC_FR09_D2", desc: "Domain - BIGBUY Hợp lệ", payload: { code: "BIGBUY", total_amount: 600000, user_id: userId }, useToken: true, expectedStatus: 200, checkDiscount: 50000 },
+        { id: "TC_FR09_D1", desc: "Domain - SAVE10 Hợp lệ (percent)", payload: { code: "SAVE10", total_amount: 400000, user_id: userId }, useToken: true, expectedStatus: 200, checkDiscount: 40000 },
+        { id: "TC_FR09_D2", desc: "Domain - BIGBUY Hợp lệ (fixed)", payload: { code: "BIGBUY", total_amount: 600000, user_id: userId }, useToken: true, expectedStatus: 200, checkDiscount: 50000 },
         { id: "TC_FR09_D3", desc: "Domain - Mã không tồn tại", payload: { code: "KHONGCO", total_amount: 400000, user_id: userId }, useToken: true, expectedStatus: 400 },
-        { id: "TC_FR09_D4", desc: "Domain - Mã hết hạn", payload: { code: "EXPIRED", total_amount: 400000, user_id: userId }, useToken: true, expectedStatus: 400 },
-        { id: "TC_FR09_D5", desc: "Domain - Không đủ tiền", payload: { code: "SAVE10", total_amount: 200000, user_id: userId }, useToken: true, expectedStatus: 400 },
-        { id: "TC_FR09_D6", desc: "Domain - Không có token", payload: { code: "SAVE10", total_amount: 400000, user_id: userId }, useToken: false, expectedStatus: 401 },
+        { id: "TC_FR09_D4", desc: "Domain - Mã bị khóa (LOCKEDCODE)", payload: { code: "LOCKEDCODE", total_amount: 400000, user_id: userId }, useToken: true, expectedStatus: 400 },
+        { id: "TC_FR09_D5", desc: "Domain - Mã hết hạn (EXPIRED)", payload: { code: "EXPIRED", total_amount: 400000, user_id: userId }, useToken: true, expectedStatus: 400 },
+        { id: "TC_FR09_D6", desc: "Domain - Không đủ tiền", payload: { code: "SAVE10", total_amount: 200000, user_id: userId }, useToken: true, expectedStatus: 400 },
+        { id: "TC_FR09_D7", desc: "Domain - Không có token", payload: { code: "SAVE10", total_amount: 400000, user_id: userId }, useToken: false, expectedStatus: 401 },
         { id: "TC_FR09_B1", desc: "BVA - Thiếu 1 đồng", payload: { code: "SAVE10", total_amount: 299999, user_id: userId }, useToken: true, expectedStatus: 400 },
         { id: "TC_FR09_B2", desc: "BVA - Vừa đủ tiền", payload: { code: "SAVE10", total_amount: 300000, user_id: userId }, useToken: true, expectedStatus: 200, checkDiscount: 30000 },
     ];
@@ -81,7 +81,6 @@ async function runTests() {
         let responseText = typeof res.body === 'object' ? JSON.stringify(res.body) : res.body;
 
         if (tc.expectedStatus === 200) {
-            // Cần thành công và logic tính toán đúng
             if (res.status === 200) {
                 if (tc.checkDiscount && res.body && res.body.discount_amount === tc.checkDiscount) {
                     isPass = true;
@@ -92,7 +91,6 @@ async function runTests() {
                 }
             }
         } else {
-            // Mong đợi lỗi (400, 401...) -> Trả về 200 là BUG
             if (res.status !== 200) {
                 isPass = true;
             }
@@ -104,17 +102,15 @@ async function runTests() {
         console.log(`-> Status: ${res.status} | Data: ${responseText} -> ${passFailText}\n`);
     }
 
-    // Đặc biệt kiểm tra TC_FR09_D7 (Đã dùng hết lượt)
-    // Để check D7, ta giả sử gọi api/checkout để consume coupon, hoặc gọi apply-coupon 2 lần xem nó có chặn apply không
-    // Nhưng API Apply chỉ là tính toán, có thể không tăng count. Test thử gọi apply liên tục xem:
-    console.log("Đang chạy: TC_FR09_D7 - Thử áp dụng mã VIP100 liên tục 3 lần (limit là 2).");
+    // Đặc biệt kiểm tra TC_FR09_D8 (Đã dùng hết lượt)
+    console.log("Đang chạy: TC_FR09_D8 - Thử áp dụng mã VIP100 liên tục 3 lần (limit là 2).");
     for (let i = 1; i <= 3; i++) {
         const res = await request('POST', '/api/apply-coupon', { code: "VIP100", total_amount: 500000, user_id: userId }, token);
         let isPass = (i <= 2) ? (res.status === 200) : (res.status !== 200); // Lần 3 mong đợi lỗi
         const passFailText = isPass ? "✅ PASS" : "❌ FAIL (BUG)";
         const responseText = typeof res.body === 'object' ? JSON.stringify(res.body) : res.body;
         
-        mdOutput += `| TC_FR09_D7.${i} | Thử apply lần ${i} (Limit 2) | \`{"code":"VIP100"}\` | ${res.status} | \`${responseText}\` | **${passFailText}** |\n`;
+        mdOutput += `| TC_FR09_D8.${i} | Thử apply lần ${i} (Limit 2) | \`{"code":"VIP100"}\` | ${res.status} | \`${responseText}\` | **${passFailText}** |\n`;
         console.log(`-> Lần ${i}: Status: ${res.status} | Data: ${responseText} -> ${passFailText}`);
     }
 
