@@ -5,18 +5,18 @@ SUT commit: local `backend/` (Node + Express + SQLite). Reproduced via API tests
 offending source line. Severity: **Critical** (security / data corruption) > **High**
 (core rule broken) > **Medium** (edge/off-by-one) > **Low**.
 
-| ID | Feature | Severity | Title | Evidence (TC) | Source |
-|----|---------|----------|-------|---------------|--------|
-| BUG-01 | FR-20 | High | Bộ đếm đăng nhập sai tăng **+2** thay vì +1 | TC_FR20_B_COUNT (`login_attempts=2` sau 1 lần sai) | server.js:54 |
-| BUG-02 | FR-20 | High | Tài khoản bị khóa sau **2** lần sai thay vì 3 | TC_FR20_B3 (đăng nhập đúng sau 2 lần sai → 403) | server.js:54,56 |
-| BUG-03 | FR-20 | Medium | Thời lượng khóa **180s** thay vì 30s | TC_FR20_B6 (sau 31s vẫn 403) | server.js:57 |
-| BUG-04 | FR-04 | **Critical** | Leo thang đặc quyền: đổi `role`→admin qua cập nhật hồ sơ (vi phạm SEC-06) | TC_FR04_D10 | server.js:124-127 |
-| BUG-05 | FR-04 | High | Không validate số điện thoại (prefix/độ dài/ký tự) | TC_FR04_D2–D6, B1, B4 | server.js:118-135 |
-| BUG-06 | FR-09 | **Critical** | Công thức giảm giá `percent` sai → `discount_amount` âm khổng lồ, `final_amount` > tổng | TC_FR09_D1 (`discount=-3,600,000`) | server.js:399 |
-| BUG-07 | FR-09 | High | `/api/apply-coupon` thiếu xác thực (C4 không thực thi) → khách vãng lai áp mã được | TC_FR09_D7 | server.js:363 |
-| BUG-08 | FR-09 | Medium | Off-by-one ngưỡng đơn: dùng `>` thay vì `>=` → đơn == `min_order_amount` bị từ chối | TC_FR09_B2 | server.js:379 |
-| BUG-09 | FR-15 | **Critical** | Thiếu kiểm soát truy cập trên `POST/PUT/DELETE /api/products` (vi phạm FR-12/SEC-03) | TC_FR15_D9, D10, DEL1 | server.js:167,179,191 |
-| BUG-10 | FR-15 | High | Không validate đầu vào sản phẩm (name rỗng/>255, price 0/âm/rỗng, category không tồn tại/rỗng) | TC_FR15_D2–D8, B1,B4,B5,B6 | server.js:167-177 |
+| ID | Feature | Severity | Title | Evidence (TC) | Source | GitHub Issue |
+|----|---------|----------|-------|---------------|--------|--------------|
+| BUG-01 | FR-20 | High | Bộ đếm đăng nhập sai tăng **+2** thay vì +1 | TC_FR20_B_COUNT (`login_attempts=2` sau 1 lần sai) | server.js:54 | [Link Issue #1](https://github.com/Phuc-215/CI-CD_and_Test-Harness_Engineering/issues/10) |
+| BUG-02 | FR-20 | High | Tài khoản bị khóa sau **2** lần sai thay vì 3 | TC_FR20_B3 (đăng nhập đúng sau 2 lần sai → 403) | server.js:54,56 | [Link Issue #2](https://github.com/Phuc-215/CI-CD_and_Test-Harness_Engineering/issues/2) |
+| BUG-03 | FR-20 | Medium | Thời lượng khóa **180s** thay vì 30s | TC_FR20_B6 (sau 31s vẫn 403) | server.js:57 | [Link Issue #3](https://github.com/Phuc-215/CI-CD_and_Test-Harness_Engineering/issues/11) |
+| BUG-04 | FR-04 | **Critical** | Leo thang đặc quyền: đổi `role`→admin qua cập nhật hồ sơ (vi phạm SEC-06) | TC_FR04_D10 | server.js:124-127 | [Link Issue #4](https://github.com/Phuc-215/CI-CD_and_Test-Harness_Engineering/issues/3) |
+| BUG-05 | FR-04 | High | Không validate số điện thoại (prefix/độ dài/ký tự) | TC_FR04_D2–D6, B1, B4 | server.js:118-135 | [Link Issue #5](https://github.com/Phuc-215/CI-CD_and_Test-Harness_Engineering/issues/4) |
+| BUG-06 | FR-09 | **Critical** | Công thức giảm giá `percent` sai → `discount_amount` âm khổng lồ, `final_amount` > tổng | TC_FR09_D1 (`discount=-3,600,000`) | server.js:399 | [Link Issue #6](https://github.com/Phuc-215/CI-CD_and_Test-Harness_Engineering/issues/5) |
+| BUG-07 | FR-09 | High | `/api/apply-coupon` thiếu xác thực (C4 không thực thi) → khách vãng lai áp mã được | TC_FR09_D7 | server.js:363 | [Link Issue #7](https://github.com/Phuc-215/CI-CD_and_Test-Harness_Engineering/issues/6) |
+| BUG-08 | FR-09 | Medium | Off-by-one ngưỡng đơn: dùng `>` thay vì `>=` → đơn == `min_order_amount` bị từ chối | TC_FR09_B2 | server.js:379 | [Link Issue #8](https://github.com/Phuc-215/CI-CD_and_Test-Harness_Engineering/issues/7) |
+| BUG-09 | FR-15 | **Critical** | Thiếu kiểm soát truy cập trên `POST/PUT/DELETE /api/products` (vi phạm FR-12/SEC-03) | TC_FR15_D9, D10, DEL1 | server.js:167,179,191 | [Link Issue #9](https://github.com/Phuc-215/CI-CD_and_Test-Harness_Engineering/issues/8) |
+| BUG-10 | FR-15 | High | Không validate đầu vào sản phẩm (name rỗng/>255, price 0/âm/rỗng, category không tồn tại/rỗng) | TC_FR15_D2–D8, B1,B4,B5,B6 | server.js:167-177 | [Link Issue #10](https://github.com/Phuc-215/CI-CD_and_Test-Harness_Engineering/issues/9) |
 
 ## Chi tiết & tái hiện
 

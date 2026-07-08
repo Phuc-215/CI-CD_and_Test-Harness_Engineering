@@ -1,5 +1,7 @@
 # Kết quả kiểm thử FR-15 (Quản lý Sản phẩm) qua API
 
+> Mỗi test case được `reseed()` DB trước khi chạy để cô lập; vì vậy sản phẩm tạo mới luôn nhận `id` giống nhau (autoincrement reset sau reseed) — đây là hành vi mong đợi, không phải trùng lặp.
+
 | TC_ID | Loại Test | Payload / Hành động | HTTP Status | Response Message | Pass/Fail |
 |---|---|---|---|---|---|
 | TC_FR15_D1 | Domain - Valid All | `{"name":"Sản phẩm A","price":100000,"category_id":1}` | 200 | `{"message":"Product created","id":6}` | **✅ PASS** |

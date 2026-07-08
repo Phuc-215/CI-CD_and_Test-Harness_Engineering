@@ -143,8 +143,9 @@ Sử dụng mã `SAVE10` làm chuẩn (`min_order_amount = 300,000`, `max_uses_p
 | TC_FR09_B2 | `total` (Lower ON) | `SAVE10` | `total_amount` | 300,000 ₫ | Hợp lệ | Chấp nhận - Vừa đủ ngưỡng |
 | TC_FR09_B3 | `uses` (Upper ON) | `SAVE10` | `uses_count` | 0 lần | Hợp lệ | Chấp nhận |
 | TC_FR09_B4 | `uses` (Upper OFF) | `SAVE10` | `uses_count` | 1 lần | Hợp lệ | Từ chối - Đã dùng hết |
-| TC_FR09_B5 | `date` (Upper OFF) | `SAVE10` | `current_date` | Đúng bằng `expired_at` | Hợp lệ | Từ chối - Hết hạn |
+| TC_FR09_B5 | `date` (Upper OFF) | `SAVE10` | `current_date` | Đặt `expired_at = now-1s` (đã qua hạn, xác định) | Hợp lệ | Từ chối - Hết hạn |
 
 ### Step 6 & 7 — Check & Reconcile
 - Đã test sát sạt ranh giới của điều kiện `>` và `>=` để bắt lỗi "Off-by-one" (VD: lập trình viên code nhầm `total > min` thay vì `total >= min`).
 - Kết quả OFF khớp hoàn toàn với các class vô hiệu `EC-I4`, `EC-I6`, `EC-I3` bên phần Domain.
+- **Cạnh `current == expired_at` (đúng mili-giây)**: backend dùng `<` (exclusive) nên tại thời điểm bằng đúng hạn coupon vẫn hợp lệ. Đây là edge dưới-giây không kiểm ổn định được → ghi nhận là **AMB-02** trong `BugReport.md`, không đưa vào test tự động.

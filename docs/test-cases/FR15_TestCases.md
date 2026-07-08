@@ -127,3 +127,18 @@ Có 2 biến tính thứ tự cần phân tích biên:
 ### Step 6 & 7 — Check & Reconcile
 - Đặc biệt chú ý **TC_FR15_B6 (price = 0)**: Rất nhiều lập trình viên nhầm lẫn giữa "lớn hơn 0" (`> 0`) và "không âm" (`>= 0`). BVA chỉ ra `0` là một điểm OFF (invalid) bắt buộc phải bị từ chối.
 - Các điểm OFF hoàn toàn tương ứng với class `EC-I1`, `EC-I2`, `EC-I3`, `EC-I4` bên Domain Testing.
+
+---
+
+## Phần 3: Kiểm thử bổ sung Update / Delete (bất biến & FR-12)
+
+Ngoài `POST` (Create), đặc tả FR-15 còn nêu Sửa/Xóa và bất biến "sửa 1 sản phẩm không ảnh
+hưởng sản phẩm khác". Bổ sung 3 case:
+
+| TC_ID | Mục tiêu | Hành động | Expected |
+|---|---|---|---|
+| TC_FR15_PUT1 | Bất biến cô lập khi Sửa | `PUT /api/products/2` rồi `GET /products/2` và `GET /products/1` | SP#2 đổi tên; SP#1 giữ nguyên (`iPhone 15 Pro Max`) |
+| TC_FR15_DEL1 | FR-12 trên thao tác Xóa | `DELETE /api/products/3` không token (Guest) | 401/403 (backend hiện trả 200 — **BUG-09**) |
+| TC_FR15_DEL2 | Xóa hợp lệ (Admin) | `DELETE /api/products/4` với Admin token | 200 xóa thành công |
+
+Tổng FR-15: **20 test cases** (10 Domain + 7 BVA + 3 Update/Delete).

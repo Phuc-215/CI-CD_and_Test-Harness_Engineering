@@ -88,6 +88,8 @@ async function runTests() {
     ];
 
     let mdOutput = "# Kết quả kiểm thử FR-15 (Quản lý Sản phẩm) qua API\n\n";
+    mdOutput += "> Mỗi test case được `reseed()` DB trước khi chạy để cô lập; vì vậy sản phẩm tạo mới ";
+    mdOutput += "luôn nhận `id` giống nhau (autoincrement reset sau reseed) — đây là hành vi mong đợi, không phải trùng lặp.\n\n";
     mdOutput += "| TC_ID | Loại Test | Payload / Hành động | HTTP Status | Response Message | Pass/Fail |\n";
     mdOutput += "|---|---|---|---|---|---|\n";
 

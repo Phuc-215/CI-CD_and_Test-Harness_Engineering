@@ -171,21 +171,26 @@ async function runTests() {
     // Reseed makes usage 0.
     await reseed();
     r = await request('POST', '/api/apply-coupon', { code: "SAVE10", total_amount: 400000, user_id: userId }, token);
-    // Expect 200 (if BUG-06 was fixed, but it fails due to BUG-06). So we check status === 200.
-    addResult("TC_FR09_B3", "BVA - Số lượt dùng = 0 (Upper ON)", `SAVE10, total=400k, usage=0`, r.status, JSON.stringify(r.body), r.status === 200);
+    let b3Pass = (r.status === 200 && r.body && r.body.discount_amount === 40000);
+    let b3Msg = typeof r.body === 'object' ? JSON.stringify(r.body) : r.body;
+    if (r.status === 200 && r.body && r.body.discount_amount !== 40000) {
+        b3Msg += ` (Sai số tiền. Mong đợi: 40000, Thực tế: ${r.body.discount_amount})`;
+    }
+    addResult("TC_FR09_B3", "BVA - Số lượt dùng = 0 (Upper ON)", `SAVE10, total=400k, usage=0`, r.status, b3Msg, b3Pass);
 
     // B4 (BVA uses_count Upper OFF, uses = 1)
     await addCouponUsage(1, userId);
     r = await request('POST', '/api/apply-coupon', { code: "SAVE10", total_amount: 400000, user_id: userId }, token);
     addResult("TC_FR09_B4", "BVA - Số lượt dùng = 1 (Upper OFF)", `SAVE10, total=400k, usage=1`, r.status, JSON.stringify(r.body), r.status === 400);
 
-    // B5 (BVA date Upper OFF, current_date = expired_at)
-    // We update coupon expiry to exactly now
+    // B5 (BVA date Upper OFF, current_date > expired_at)
+    // Deterministic: set expiry 1s in the PAST so `expiry < now` is unambiguously true (không phụ
+    // thuộc timing ms). Cạnh bằng đúng `expired_at` là edge dưới-giây, ghi nhận ở AMB-02.
     await reseed();
-    const nowIso = new Date().toISOString();
-    await updateCouponExpiry("SAVE10", nowIso);
+    const pastIso = new Date(Date.now() - 1000).toISOString();
+    await updateCouponExpiry("SAVE10", pastIso);
     r = await request('POST', '/api/apply-coupon', { code: "SAVE10", total_amount: 400000, user_id: userId }, token);
-    addResult("TC_FR09_B5", "BVA - Ngày hiện tại = Hạn dùng (Upper OFF)", `SAVE10, expired_at=now`, r.status, JSON.stringify(r.body), r.status === 400);
+    addResult("TC_FR09_B5", "BVA - Đã qua hạn (Upper OFF, expired_at = now-1s)", `SAVE10, expired_at=now-1s`, r.status, JSON.stringify(r.body), r.status === 400);
 
     mdOutput += `\n## Tổng kết\n\n`;
     mdOutput += `| Thiết kế | Thực thi | PASS | FAIL (BUG) |\n|---|---|---|---|\n| 13 | 13 | ${pass} | ${fail} |\n`;
