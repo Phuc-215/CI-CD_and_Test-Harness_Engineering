@@ -115,9 +115,26 @@ async function runTests() {
         const res = await request('POST', '/api/products', tc.payload, currentToken);
         const status = res.status;
         
-        const isPass = tc.expectedStatus.includes(status);
+        let isPass = tc.expectedStatus.includes(status);
         
         let responseText = typeof res.body === 'object' ? JSON.stringify(res.body) : res.body;
+
+        // Verify persistence if it was supposed to create a product
+        if (isPass && (status === 200 || status === 201)) {
+            if (res.body && res.body.id) {
+                const getRes = await request('GET', `/api/products/${res.body.id}`);
+                if (getRes.status === 200 && getRes.body.name === tc.payload.name) {
+                    // Validated persistence
+                } else {
+                    isPass = false;
+                    responseText += " (Lỗi: GET lại không tìm thấy hoặc sai data)";
+                }
+            } else {
+                isPass = false;
+                responseText += " (Lỗi: API trả về 200 nhưng không có ID)";
+            }
+        }
+
         if (responseText && responseText.length > 100) {
             responseText = responseText.substring(0, 100) + "...";
         }

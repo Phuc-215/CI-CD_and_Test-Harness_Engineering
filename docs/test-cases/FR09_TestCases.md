@@ -59,6 +59,8 @@ Tại bước Checkout, người dùng có thể nhập mã giảm giá. Hệ th
 - **`uses_count`** (So với `max_uses_per_user`):
   - `EC-V5`: Số lần dùng `< max`
   - `EC-I6`: Số lần dùng `>= max`
+- **`user_id`** (Guest check):
+  - `EC-I7`: Không gửi `user_id` (Guest bypass attempt)
 - **`discount_type`**:
   - `EC-V6`: Loại `percent`
   - `EC-V7`: Loại `fixed`
@@ -76,6 +78,7 @@ Tại bước Checkout, người dùng có thể nhập mã giảm giá. Hệ th
 | `EC-I4` | `SAVE10`, total=200k | Từ chối - "Đơn hàng chưa đủ điều kiện" |
 | `EC-I5` | No token (Guest) | Từ chối - HTTP 401 Unauthorized |
 | `EC-I6` | `SAVE10`, đã dùng 1 lần | Từ chối - "Bạn đã hết lượt dùng mã này" |
+| `EC-I7` | Payload thiếu `user_id` | Từ chối - 401 Unauthorized hoặc Báo lỗi |
 | `EC-V6` | `SAVE10`, total=400k | `discount = 40,000`, `final = 360,000` |
 | `EC-V7` | `BIGBUY`, total=600k | `discount = 50,000`, `final = 550,000` |
 
@@ -91,6 +94,7 @@ Tại bước Checkout, người dùng có thể nhập mã giảm giá. Hệ th
 | TC_FR09_D6 | I4 | `SAVE10` | 200,000 | Hợp lệ | 0 | Từ chối - Chưa đủ ngưỡng |
 | TC_FR09_D7 | I5 | `SAVE10` | 400,000 | Trống | 0 | 401 Unauthorized |
 | TC_FR09_D8 | I6 | `SAVE10` | 400,000 | Hợp lệ | 1 | Từ chối - Hết lượt |
+| TC_FR09_D9 | I7 | `SAVE10` | 400,000 | Trống | (Không có user_id) | 401 Unauthorized |
 
 
 ### Step 6 & 7 — Coverage & Reconcile

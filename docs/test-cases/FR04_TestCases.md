@@ -43,6 +43,7 @@ Phân tách các biến thành các miền tương đương (hợp lệ và khô
 | EC-V4 | valid | Payload không chứa `email` và `role` |
 | EC-I8 | invalid | Payload cố tình chứa `email` để thử thay đổi |
 | EC-I9 | invalid | Payload cố tình chứa `role` = "admin" để thử leo thang đặc quyền |
+| EC-I10 | invalid | Payload cập nhật thiếu trường (subset update), ví dụ chỉ gửi `phone` |
 
 ## Step 3 — Interior representatives
 
@@ -58,6 +59,7 @@ Phân tách các biến thành các miền tương đương (hợp lệ và khô
 | EC-I7 | `` (chuỗi rỗng) | Thiếu địa chỉ |
 | EC-I8 | `email: "hacker@eshop.com"` | Thử thay đổi email |
 | EC-I9 | `role: "admin"` | Thử thay đổi quyền (leo thang) |
+| EC-I10 | `{ phone: "0999999999" }` | Kiểm tra lỗi mất dữ liệu khi thiếu trường |
 
 ## Step 4 — Expected result per class
 
@@ -69,6 +71,7 @@ Phân tách các biến thành các miền tương đương (hợp lệ và khô
 | EC-I6..I7 | AMBIGUITY (Trả về 200 do SRS không cấm rõ ràng) |
 | EC-I8 | Dữ liệu cập nhật thành công nhưng **email KHÔNG BỊ ĐỔI** (Bỏ qua field email) hoặc Báo lỗi |
 | EC-I9 | Dữ liệu cập nhật thành công nhưng **role KHÔNG BỊ ĐỔI** (Bỏ qua field role) hoặc Báo lỗi |
+| EC-I10 | Cập nhật thành công trường gửi lên, các trường cũ **KHÔNG BỊ XÓA** (No data loss) |
 
 ## Step 5 — Domain matrix (single-fault)
 
@@ -84,6 +87,7 @@ Phân tách các biến thành các miền tương đương (hợp lệ và khô
 | TC_FR04_D8 | EC-I7 | `0912345678` | Nguyễn Văn A | `` | Không truyền | AMBIGUITY (Trả về 200, SRS không cấm) |
 | TC_FR04_D9 | EC-I8 | `0912345678` | Nguyễn Văn A | 123 Lê Lợi | `email: "hack@eshop.com"` | Thành công nhưng email cũ không đổi |
 | TC_FR04_D10| EC-I9 | `0912345678` | Nguyễn Văn A | 123 Lê Lợi | `role: "admin"` | Thành công nhưng role cũ không đổi |
+| TC_FR04_D11| EC-I10 | `0999999999` | Không truyền | Không truyền | Không truyền | Thành công, name và address cũ KHÔNG BỊ XÓA |
 
 ## Step 6 — Coverage check
 - Đã test toàn bộ các class từ Step 2. Tất cả quy tắc trong đặc tả đều được test.

@@ -10,6 +10,7 @@
 | TC_FR09_D6 | Domain - Không đủ tiền | SAVE10, total=200k | 400 | {"error":"Đơn hàng chưa đủ giá trị tối thiểu 300,000 ₫ để áp dụng mã này"} | **✅ PASS** |
 | TC_FR09_D7 | Domain - Không có token | SAVE10, total=400k, Guest | 200 | {"success":true,"coupon_id":1,"discount_amount":-3600000,"final_amount":4000000,"message":"Áp dụng thành công! Giảm 10%"} | **❌ FAIL (BUG)** |
 | TC_FR09_D8 | Domain - Đã dùng hết lượt (uses >= max) | SAVE10, total=400k, seeded usage=1 | 400 | {"error":"Bạn đã sử dụng mã này 1 lần (đã đạt giới hạn)"} | **✅ PASS** |
+| TC_FR09_D9 | Domain - Khách vãng lai (không user_id) | SAVE10, total=400k, No user_id | 200 | {"success":true,"coupon_id":1,"discount_amount":-3600000,"final_amount":4000000,"message":"Áp dụng thành công! Giảm 10%"} | **❌ FAIL (BUG)** |
 | TC_FR09_B1 | BVA - Thiếu 1 đồng | SAVE10, total=299999 | 400 | {"error":"Đơn hàng chưa đủ giá trị tối thiểu 300,000 ₫ để áp dụng mã này"} | **✅ PASS** |
 | TC_FR09_B2 | BVA - Vừa đủ tiền (Lower ON) | SAVE10, total=300000 | 400 | {"error":"Đơn hàng chưa đủ giá trị tối thiểu 300,000 ₫ để áp dụng mã này"} | **❌ FAIL (BUG)** |
 | TC_FR09_B3 | BVA - Số lượt dùng = 0 (Upper ON) | SAVE10, total=400k, usage=0 | 200 | {"success":true,"coupon_id":1,"discount_amount":-3600000,"final_amount":4000000,"message":"Áp dụng thành công! Giảm 10%"} (Sai số tiền. Mong đợi: 40000, Thực tế: -3600000) | **❌ FAIL (BUG)** |
@@ -20,4 +21,4 @@
 
 | Thiết kế | Thực thi | PASS | FAIL (BUG) |
 |---|---|---|---|
-| 13 | 13 | 9 | 4 |
+| 14 | 14 | 9 | 5 |

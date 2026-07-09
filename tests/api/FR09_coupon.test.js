@@ -155,6 +155,10 @@ async function runTests() {
     r = await request('POST', '/api/apply-coupon', { code: "SAVE10", total_amount: 400000, user_id: userId }, token);
     addResult("TC_FR09_D8", "Domain - Đã dùng hết lượt (uses >= max)", `SAVE10, total=400k, seeded usage=1`, r.status, JSON.stringify(r.body), r.status === 400);
 
+    // D9 (Guest bypass C5)
+    r = await request('POST', '/api/apply-coupon', { code: "SAVE10", total_amount: 400000 }, null);
+    addResult("TC_FR09_D9", "Domain - Khách vãng lai (không user_id)", `SAVE10, total=400k, No user_id`, r.status, JSON.stringify(r.body), r.status === 401);
+
     // B1 (BVA total_amount Lower OFF)
     await reseed();
     r = await request('POST', '/api/apply-coupon', { code: "SAVE10", total_amount: 299999, user_id: userId }, token);
@@ -193,7 +197,7 @@ async function runTests() {
     addResult("TC_FR09_B5", "BVA - Đã qua hạn (Upper OFF, expired_at = now-1s)", `SAVE10, expired_at=now-1s`, r.status, JSON.stringify(r.body), r.status === 400);
 
     mdOutput += `\n## Tổng kết\n\n`;
-    mdOutput += `| Thiết kế | Thực thi | PASS | FAIL (BUG) |\n|---|---|---|---|\n| 13 | 13 | ${pass} | ${fail} |\n`;
+    mdOutput += `| Thiết kế | Thực thi | PASS | FAIL (BUG) |\n|---|---|---|---|\n| 14 | 14 | ${pass} | ${fail} |\n`;
 
     fs.writeFileSync('docs/test-results/FR09_TestResults.md', mdOutput);
     console.log(`\nFR-09 xong: ${pass} PASS / ${fail} FAIL. Ghi docs/test-results/FR09_TestResults.md`);

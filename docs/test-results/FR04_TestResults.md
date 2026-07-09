@@ -12,6 +12,7 @@
 | TC_FR04_D8 | Địa chỉ rỗng (Ambiguity) | `{"name":"Nguyen Van A","shipping_address":"","phone":"0912345678"}` | 200 | Status: 200 (Ambiguity: SUT accepted empty field; SRS did not specify restriction) | **⚠️ AMBIGUITY** |
 | TC_FR04_D9 | Đổi email (Hacker) | `{"name":"Nguyen Van A","shipping_address":"123 Le Loi","phone":"0912345678","email":"hacker@eshop.com"}` | 200 | An toàn: Email giữ nguyên là test@eshop.com | **✅ PASS** |
 | TC_FR04_D10 | Đổi role (Hacker) | `{"name":"Nguyen Van A","shipping_address":"123 Le Loi","phone":"0912345678","role":"admin"}` | 200 | Nguy hiểm: Quyền bị nâng lên Admin! | **❌ FAIL (BUG)** |
+| TC_FR04_D11 | Subset Partition (Missing fields) | `{"phone":"0999999999"}` | 200 | Nguy hiểm: Mất dữ liệu các trường khác (Data Loss)! | **❌ FAIL (BUG)** |
 | TC_FR04_B1 | BVA - Phone (9) | `{"name":"Nguyen Van A","shipping_address":"123 Le Loi","phone":"012345678"}` | 200 | Status: 200 | **❌ FAIL (BUG)** |
 | TC_FR04_B2 | BVA - Phone (10) | `{"name":"Nguyen Van A","shipping_address":"123 Le Loi","phone":"0123456789"}` | 200 | Status: 200 | **✅ PASS** |
 | TC_FR04_B3 | BVA - Phone (11) | `{"name":"Nguyen Van A","shipping_address":"123 Le Loi","phone":"01234567890"}` | 200 | Status: 200 | **✅ PASS** |
@@ -21,4 +22,4 @@
 
 | Thiết kế | Thực thi | PASS | FAIL (BUG) | AMBIGUITY |
 |---|---|---|---|---|
-| 14 | 14 | 4 | 8 | 2 |
+| 15 | 15 | 4 | 9 | 2 |

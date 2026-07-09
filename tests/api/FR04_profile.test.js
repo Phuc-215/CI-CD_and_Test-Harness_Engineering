@@ -70,6 +70,7 @@ async function runTests() {
         
         { id: "TC_FR04_D9", desc: "Đổi email (Hacker)", payload: { name: "Nguyen Van A", shipping_address: "123 Le Loi", phone: "0912345678", email: "hacker@eshop.com" }, expectedStatus: 200, checkField: "email" },
         { id: "TC_FR04_D10", desc: "Đổi role (Hacker)", payload: { name: "Nguyen Van A", shipping_address: "123 Le Loi", phone: "0912345678", role: "admin" }, expectedStatus: 200, checkField: "role" },
+        { id: "TC_FR04_D11", desc: "Subset Partition (Missing fields)", payload: { phone: "0999999999" }, expectedStatus: 200, checkField: "subset_data_loss" },
 
         { id: "TC_FR04_B1", desc: "BVA - Phone (9)", payload: { name: "Nguyen Van A", shipping_address: "123 Le Loi", phone: "012345678" }, expectedStatus: 400 },
         { id: "TC_FR04_B2", desc: "BVA - Phone (10)", payload: { name: "Nguyen Van A", shipping_address: "123 Le Loi", phone: "0123456789" }, expectedStatus: 200 },
@@ -89,6 +90,12 @@ async function runTests() {
         // strict database reseed before every test case to prevent database state pollution!
         await reseed();
 
+        let preState = null;
+        if (tc.checkField === "subset_data_loss") {
+            const preRes = await request('GET', '/api/users/me', null, token);
+            if (preRes.status === 200) preState = preRes.body;
+        }
+
         const res = await request('PUT', '/api/users/me', tc.payload, token);
         const status = res.status;
         
@@ -107,7 +114,7 @@ async function runTests() {
         } else if (tc.expectedStatus === 200) {
             isPass = (status === 200);
         } else {
-            isPass = (status !== 200);
+            isPass = (status === tc.expectedStatus);
         }
 
         // Kiểm tra bảo mật (D9, D10)
@@ -132,6 +139,18 @@ async function runTests() {
                     } else {
                         isPass = true; // An toàn
                         actualResultText = "An toàn: Quyền giữ nguyên là " + user.role;
+                    }
+                }
+                if (tc.checkField === "subset_data_loss") {
+                    if (!preState) {
+                        isPass = false;
+                        actualResultText = "Lỗi test: Không lấy được state trước khi PUT";
+                    } else if (user.name !== preState.name || user.shipping_address !== preState.shipping_address) {
+                        isPass = false;
+                        actualResultText = "Nguy hiểm: Mất dữ liệu các trường khác (Data Loss)!";
+                    } else {
+                        isPass = true;
+                        actualResultText = "An toàn: Giữ nguyên dữ liệu cũ";
                     }
                 }
             }
