@@ -2,6 +2,8 @@
 
 # EShop — Phiên bản dành cho Kiểm thử Phần mềm
 
+![Coverage](./coverage/badge.svg)
+
 > **Phạm vi tài liệu**: Mô tả **yêu cầu nghiệp vụ đúng** của hệ thống EShop.
 > Sinh viên sử dụng tài liệu này làm cơ sở thiết kế test case, sau đó kiểm thử hệ thống thực để tìm ra các điểm triển khai không tuân thủ đặc tả.
 

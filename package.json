@@ -5,13 +5,16 @@
   "main": "backend/app.js",
   "scripts": {
     "test:spec": "cross-env DB_PATH=backend/test.sqlite mocha tests/api/spec --reporter mocha-junit-reporter --reporter-options mochaFile=reports/spec.xml --timeout 60000",
-    "test:guard": "cross-env DB_PATH=backend/test.sqlite mocha tests/api/guard --timeout 20000"
+    "test:guard": "cross-env DB_PATH=backend/test.sqlite mocha tests/api/guard --timeout 20000",
+    "test:coverage": "cross-env DB_PATH=backend/test.sqlite nyc --reporter=json-summary --reporter=text mocha tests/api/guard --timeout 20000"
   },
   "devDependencies": {
     "chai": "^4.4.1",
     "cross-env": "^7.0.3",
+    "make-coverage-badge": "^1.2.0",
     "mocha": "^10.2.0",
     "mocha-junit-reporter": "^2.2.1",
+    "nyc": "^18.0.0",
     "supertest": "^6.3.4"
   }
 }
