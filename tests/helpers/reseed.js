@@ -6,13 +6,17 @@
 const path = require("path");
 const sqlite3 = require(path.resolve(__dirname, "../../backend/node_modules/sqlite3")).verbose();
 
-const DB_PATH = path.resolve(__dirname, "../../backend/database.sqlite");
+const DB_PATH = process.env.DB_PATH || path.resolve(__dirname, "../../backend/database.sqlite");
+
+let isFirstRun = true;
 
 function reseed() {
   return new Promise((resolve, reject) => {
-    const db = new sqlite3.Database(DB_PATH, (err) => {
-      if (err) return reject(err);
-    });
+    setTimeout(() => {
+      isFirstRun = false;
+      const db = new sqlite3.Database(DB_PATH, (err) => {
+        if (err) return reject(err);
+      });
     db.serialize(() => {
       db.run("DROP TABLE IF EXISTS coupon_usage");
       db.run("DROP TABLE IF EXISTS coupons");
@@ -66,7 +70,8 @@ function reseed() {
       cp.run("LOCKEDCODE", "percent", 15, 100000, "2099-12-31", 0, 1);
       cp.finalize();
     });
-    db.close((err) => (err ? reject(err) : resolve()));
+      db.close((err) => (err ? reject(err) : resolve()));
+    }, isFirstRun ? 500 : 0);
   });
 }
 

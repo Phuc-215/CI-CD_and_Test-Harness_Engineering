@@ -4,10 +4,10 @@ API-level domain-testing & BVA suites for the 4 selected features (one per pool)
 
 | Pool | Feature | Suite | Test cases doc | Results |
 |------|---------|-------|----------------|---------|
-| A | FR-04 Hồ sơ cá nhân | `api/FR04_profile.test.js` | `docs/test-cases/FR04_TestCases.md` | `docs/test-results/FR04_TestResults.md` |
-| B | FR-09 Mã giảm giá | `api/FR09_coupon.test.js` | `docs/test-cases/FR09_TestCases.md` | `docs/test-results/FR09_TestResults.md` |
-| C | FR-15 Quản lý sản phẩm | `api/FR15_product.test.js` | `docs/test-cases/FR15_TestCases.md` | `docs/test-results/FR15_TestResults.md` |
-| D | FR-20 (Mobile) Đăng nhập & Khóa | `api/FR20_login.test.js` | `docs/test-cases/FR20_TestCases.md` | `docs/test-results/FR20_TestResults.md` |
+| A | FR-04 Hồ sơ cá nhân | `api/legacy/FR04_profile.test.js` | `docs/test-cases/FR04_TestCases.md` | `docs/test-results/FR04_TestResults.md` |
+| B | FR-09 Mã giảm giá | `api/legacy/FR09_coupon.test.js` | `docs/test-cases/FR09_TestCases.md` | `docs/test-results/FR09_TestResults.md` |
+| C | FR-15 Quản lý sản phẩm | `api/legacy/FR15_product.test.js` | `docs/test-cases/FR15_TestCases.md` | `docs/test-results/FR15_TestResults.md` |
+| D | FR-20 (Mobile) Đăng nhập & Khóa | `api/legacy/FR20_login.test.js` | `docs/test-cases/FR20_TestCases.md` | `docs/test-results/FR20_TestResults.md` |
 
 ## Chạy
 
@@ -20,10 +20,15 @@ node backend/database.js         # tạo & seed database.sqlite
 node backend/server.js           # lắng nghe http://localhost:3000
 
 # 3. Terminal khác — chạy từ THƯ MỤC GỐC của project (đường dẫn ghi kết quả là tương đối)
-node tests/api/FR04_profile.test.js
-node tests/api/FR09_coupon.test.js
-node tests/api/FR15_product.test.js
-node tests/api/FR20_login.test.js   # có chờ 31s để kiểm mở khóa
+node tests/api/legacy/FR04_profile.test.js
+node tests/api/legacy/FR09_coupon.test.js
+node tests/api/legacy/FR15_product.test.js
+node tests/api/legacy/FR20_login.test.js   # có chờ 31s để kiểm mở khóa
+
+# 4. CHẠY QUA FRAMEWORK (CI/CD)
+# Yêu cầu cài đặt npm install ở gốc dự án
+npm run test:spec
+npm run test:guard
 ```
 
 Mỗi suite tự ghi lại file kết quả `docs/test-results/<FR>_TestResults.md` kèm bảng **Tổng kết**.
