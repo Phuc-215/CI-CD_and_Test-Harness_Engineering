@@ -6,7 +6,7 @@
   "scripts": {
     "test:spec": "cross-env DB_PATH=backend/test.sqlite mocha tests/api/spec --reporter mocha-junit-reporter --reporter-options mochaFile=reports/spec.xml --timeout 60000",
     "test:guard": "cross-env DB_PATH=backend/test.sqlite mocha tests/api/guard --timeout 20000",
-    "test:coverage": "cross-env DB_PATH=backend/test.sqlite nyc --reporter=json-summary --reporter=text mocha tests/api/guard --timeout 20000"
+    "test:coverage": "cross-env DB_PATH=backend/test.sqlite nyc --reporter=html --reporter=json-summary --reporter=text mocha tests/api/guard --timeout 20000"
   },
   "devDependencies": {
     "chai": "^4.4.1",

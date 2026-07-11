@@ -8,3 +8,4 @@ test.sqlite
 reports/
 playwright-report/
 test-results/
+.nyc_output/
