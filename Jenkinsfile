@@ -82,8 +82,14 @@ pipeline {
           stage('Playwright Smoke') {
             steps {
               dir("${APP}") {
-                sh 'npm ci'
-                sh 'npx playwright install --with-deps'
+                // npm install, not ci: this app's lockfile was generated with a newer npm
+                // than the one bundled with the Jenkins NodeJS 20 tool, which makes `npm ci`
+                // reject it as "out of sync" over optional platform deps (@emnapi/* wasm).
+                sh 'npm install'
+                // No --with-deps: the jenkins user has no sudo on this agent, unlike a
+                // GH Actions hosted runner. System libs for chromium are pre-installed
+                // once on the agent/image instead (see User_Guide.md §3.1).
+                sh 'npx playwright install chromium'
               }
               sh 'node backend/server.js &'
               dir("${APP}") {
@@ -99,7 +105,7 @@ pipeline {
     stage('Mobile Smoke Tests') {
       steps {
         dir('frontend-mobile') {
-          sh 'npm ci'
+          sh 'npm install' // same lockfile/npm-version mismatch as the web/admin apps
           sh 'npm test'
         }
       }

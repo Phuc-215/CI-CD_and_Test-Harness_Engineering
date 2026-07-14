@@ -68,7 +68,22 @@ but the NodeJS plugin's classes live under `jenkins.plugins.nodejs.tools.*` — 
 `hudson.plugins.nodejs.tools.*` path shown in most tutorials — and must be loaded via
 `Jenkins.get().pluginManager.uberClassLoader`, not a plain `import`, or it won't resolve.)
 
-**3.4 Create the Pipeline job:**
+**3.4 Pre-install Playwright's OS-level browser dependencies once, as root.**
+The Jenkinsfile deliberately does *not* run `playwright install --with-deps`: the pipeline
+executes as the unprivileged `jenkins` user, which has no `sudo` on this agent (unlike a
+GH Actions hosted runner, which does). Install the shared libraries chromium needs directly
+on the agent/container instead — a one-time step, not part of every build:
+```bash
+docker exec -u root jenkins-demo bash -c \
+  'export PATH=/var/jenkins_home/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/node20/bin:$PATH && \
+   cd /var/jenkins_home/workspace/eshop-demo/frontend-web && npx playwright install --with-deps chromium'
+```
+(Requires the workspace to already exist from a prior checkout, and the `node20` tool to
+already be unpacked.) After this, the pipeline's own `npx playwright install chromium` step
+(no `--with-deps`, no root needed) just downloads the browser binary into the `jenkins` user's
+own cache — the OS libraries are already satisfied system-wide.
+
+**3.5 Create the Pipeline job:**
 1. **New Item → Pipeline**.
 2. Pipeline → **Pipeline script from SCM** → SCM: **Git**.
 3. **Repository URL**: this repo's GitHub URL. **Credentials**: add a GitHub PAT (Jenkins
