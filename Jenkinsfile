@@ -125,8 +125,11 @@ pipeline {
     stage('Mobile Smoke Tests') {
       steps {
         dir('frontend-mobile') {
-          sh 'npm install' // same lockfile/npm-version mismatch as the web/admin apps
           catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+            // --legacy-peer-deps: this app's own react version and jest-expo's peer range
+            // genuinely conflict (a real, pre-existing lockfile issue, not a Jenkins artifact);
+            // same reason `npm install` replaced `npm ci` for the other frontend apps.
+            sh 'npm install --legacy-peer-deps'
             sh 'npm test'
           }
         }
