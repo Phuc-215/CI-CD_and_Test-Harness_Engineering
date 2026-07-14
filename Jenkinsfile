@@ -60,6 +60,42 @@ pipeline {
         }
       }
     }
+
+    // Mirrors the `web-smoke` GHA job (strategy.matrix: [frontend-web, frontend-admin]).
+    stage('Web & Admin Smoke Tests') {
+      matrix {
+        axes {
+          axis {
+            name 'APP'
+            values 'frontend-web', 'frontend-admin'
+          }
+        }
+        stages {
+          stage('Playwright Smoke') {
+            steps {
+              dir("${APP}") {
+                sh 'npm ci'
+                sh 'npx playwright install --with-deps'
+              }
+              sh 'node backend/server.js &'
+              dir("${APP}") {
+                sh 'npx playwright test'
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Mirrors the `mobile-smoke` GHA job.
+    stage('Mobile Smoke Tests') {
+      steps {
+        dir('frontend-mobile') {
+          sh 'npm ci'
+          sh 'npm test'
+        }
+      }
+    }
   }
 
   post {
