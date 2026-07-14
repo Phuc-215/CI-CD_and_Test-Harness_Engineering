@@ -137,3 +137,26 @@ When a CI pipeline fails, triage can be assisted with AI (ChatGPT or Claude) usi
   if running `jenkins-cli.jar` from inside the container, not the host-mapped `8081`).
 - **Pipeline fails at parse time with "Invalid option type 'timestamps'":** the
   **Timestamper** plugin isn't installed — add it to `plugins.txt` (§3.1).
+- **Guard crashes with `SQLITE_CONSTRAINT: UNIQUE constraint failed: coupons.code`
+  instead of just failing tests:** Jenkins reuses the *same workspace* across builds
+  (unlike a GHA runner, which is always fresh), so a leftover `backend/test.sqlite` — or
+  worse, one left with the wrong file owner by an earlier manual debugging session — makes
+  `initDatabase()`'s reseed collide with old rows and crash instead of cleanly resetting.
+  Fixed by a `Clean workspace state` stage (`pkill -f "node backend/server.js"` +
+  `rm -f backend/test.sqlite`) before every build, plus the same cleanup in `post.always`.
+- **Vite dev server crashes with `SyntaxError: ... does not provide an export named
+  'styleText'` under the Playwright `webServer`:** the `node20` tool was pinned to an
+  old Node patch version (20.11.1) that predates a `node:util` export Vite/rolldown now
+  require (need ≥20.19). Re-registering the tool with a newer 20.x version fixes it —
+  this is a config mistake on the Jenkins side, not a real GHA-vs-Jenkins difference,
+  since `actions/setup-node` with `node-version: 20` always resolves to a current 20.x.
+- **`frontend-mobile`'s `npm install` fails with `ERESOLVE` (react vs jest-expo peer
+  range):** a genuine, pre-existing peer-dependency conflict in that app's own
+  package.json/lockfile, unrelated to Jenkins. Use `npm install --legacy-peer-deps`,
+  same as the `npm install`-over-`npm ci` swap for the other frontend apps.
+- **A real SUT/frontend bug fails a smoke test and you don't want it to block the whole
+  pipeline:** wrap the *entire* step sequence for that stage (install *and* test) in one
+  `catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE')` block — wrapping only the
+  test step still lets an earlier failing install step (e.g. an ERESOLVE conflict) fail
+  the build hard. A build that finishes **UNSTABLE** (not FAILURE) with a full JUnit
+  report is the signal this is working as intended.
