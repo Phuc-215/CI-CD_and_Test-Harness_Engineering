@@ -21,6 +21,20 @@ pipeline {
       steps { checkout scm }
     }
 
+    // Jenkins reuses the SAME workspace across builds (unlike GHA's fresh runner per job),
+    // so a leftover test.sqlite (or worse, one left with stale/wrong ownership by a prior
+    // debugging session) makes initDatabase()'s reseed collide with old rows and crash with
+    // SQLITE_CONSTRAINT instead of a clean run. Also kill any backend server a previous,
+    // interrupted build may have left backgrounded on port 3000.
+    stage('Clean workspace state') {
+      steps {
+        sh '''
+          pkill -f "node backend/server.js" || true
+          rm -f backend/test.sqlite
+        '''
+      }
+    }
+
     stage('NPM Install') {
       // Cache parity note: GitHub Actions uses actions/setup-node cache:'npm' keyed on the
       // lockfile hash; Jenkins reuses the mounted jenkins_home ~/.npm plus a local cache dir.
@@ -122,6 +136,7 @@ pipeline {
 
   post {
     always {
+      sh 'pkill -f "node backend/server.js" || true' // don't leak a backgrounded backend into the next build
       junit allowEmptyResults: true, testResults: 'reports/**/*.xml'
       // Requires the Coverage plugin. Comment out if not installed.
       recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'coverage/cobertura-coverage.xml']])
