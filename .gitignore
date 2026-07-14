@@ -1,0 +1,11 @@
+node_modules/
+*.sqlite
+.env
+frontend-admin/package-lock.json
+backend/database.sqlite
+test_attempts.js
+test.sqlite
+reports/
+playwright-report/
+test-results/
+.nyc_output/

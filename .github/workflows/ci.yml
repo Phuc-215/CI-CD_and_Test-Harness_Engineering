@@ -1,0 +1,101 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  backend-guard:
+    name: Backend Guard Tests (must pass)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run test:coverage
+      - name: Generate Coverage Badge
+        run: npx make-coverage-badge
+      - name: Commit Coverage Badge
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update coverage badge [skip ci]"
+          file_pattern: "coverage/badge.svg"
+
+  backend-spec:
+    name: Backend Spec Tests (allowed-fail)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run test:spec
+      - name: Upload Spec Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: spec-test-results
+          path: reports/spec.xml
+
+  web-smoke:
+    name: Web & Admin Smoke Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [frontend-web, frontend-admin]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      - name: Install backend deps
+        run: npm ci
+
+      - name: Install frontend deps
+        working-directory: ${{ matrix.app }}
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        working-directory: ${{ matrix.app }}
+        run: npx playwright install --with-deps
+
+      - name: Start Backend
+        run: cross-env DB_PATH=backend/test.sqlite node backend/server.js &
+        env:
+          PORT: 3000
+
+      - name: Run Playwright Tests
+        working-directory: ${{ matrix.app }}
+        run: npx playwright test
+
+  mobile-smoke:
+    name: Mobile Smoke Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      - name: Install mobile deps
+        working-directory: frontend-mobile
+        run: npm ci
+
+      - name: Run Jest Tests
+        working-directory: frontend-mobile
+        run: npm test
