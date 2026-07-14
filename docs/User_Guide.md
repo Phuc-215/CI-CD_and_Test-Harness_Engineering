@@ -20,25 +20,69 @@ gh run view <run-id>
 To inspect artifacts like the JUnit report for the backend-spec job, download it directly from the run summary.
 
 ## 3. Running Jenkins
-Jenkins serves as the traditional CI orchestrator and must be run locally via Docker.
+Jenkins serves as the traditional CI orchestrator. For a local trial demo (no GitHub
+webhook needed — you trigger builds manually), the fastest verified path is a **custom
+image with plugins baked in**, so there's no slow first-run "install plugins" wizard.
 
-**Start the controller:**
-```bash
-docker run -d --name jenkins -p 8080:8080 -p 50000:50000 \
-  -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts-jdk21
-```
-Unlock Jenkins:
-```bash
-docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
-```
-**Setup:**
-1. Install plugins: **NodeJS**, **JUnit**, **Coverage** (Cobertura), **GitHub**.
-2. Go to **Manage Jenkins** → **Tools** and add a NodeJS 20 installation named exactly `node20`.
-3. Add a Personal Access Token (PAT) credential for GitHub in Manage Jenkins → Credentials.
-4. Expose your Jenkins instance using ngrok (`ngrok http 8080`) and register the `https://<ngrok-id>.ngrok-free.app/github-webhook/` webhook in your GitHub repository settings.
-5. Create a Pipeline job pointing to this repository and branch.
+**3.1 Build a custom image with the plugins this Jenkinsfile needs:**
 
-You can view the JUnit trend and Cobertura coverage reports directly in the Jenkins UI after a build.
+`plugins.txt`:
+```
+git
+workflow-aggregator
+nodejs
+junit
+coverage
+timestamper
+```
+> `timestamper` is easy to miss: the Jenkinsfile's `options { timestamps() }` fails the
+> pipeline at parse time with "Invalid option type" if it's absent.
+
+`Dockerfile`:
+```dockerfile
+FROM jenkins/jenkins:lts-jdk21
+USER root
+COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
+RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
+```
+
+```bash
+docker build -t eshop-jenkins-demo:latest .
+```
+
+**3.2 Run it, skipping the setup wizard** (fine for a local trial; add real security before
+exposing this beyond localhost):
+```bash
+docker run -d --name jenkins-demo \
+  -p 8081:8080 -p 50001:50000 \
+  -v jenkins_demo_home:/var/jenkins_home \
+  -e JAVA_OPTS="-Djenkins.install.runSetupWizard=false" \
+  eshop-jenkins-demo:latest
+```
+Jenkins is then reachable, unauthenticated, at `http://localhost:8081`.
+
+**3.3 Register the `node20` NodeJS tool** (required by `tools { nodejs 'node20' }`).
+Easiest via **Manage Jenkins → Tools → NodeJS installations → Add NodeJS**, name exactly
+`node20`, version 20.x. (It can also be scripted through **Manage Jenkins → Script Console**,
+but the NodeJS plugin's classes live under `jenkins.plugins.nodejs.tools.*` — not the older
+`hudson.plugins.nodejs.tools.*` path shown in most tutorials — and must be loaded via
+`Jenkins.get().pluginManager.uberClassLoader`, not a plain `import`, or it won't resolve.)
+
+**3.4 Create the Pipeline job:**
+1. **New Item → Pipeline**.
+2. Pipeline → **Pipeline script from SCM** → SCM: **Git**.
+3. **Repository URL**: this repo's GitHub URL. **Credentials**: add a GitHub PAT (Jenkins
+   has no equivalent of GHA's auto-injected `GITHUB_TOKEN` — this is a real asymmetry worth
+   noting in any CI comparison).
+4. **Branch Specifier**: `*/demo` — the Jenkinsfile lives on the `demo` branch, not `main`.
+5. **Script Path**: `Jenkinsfile` (default, no change needed).
+6. **Build Now**, then watch **Stage View** and the console log.
+
+**Optional — GitHub webhook trigger** (only needed if you want pushes to auto-trigger,
+not for a manual trial run): expose Jenkins with `ngrok http 8081` and register
+`https://<ngrok-id>.ngrok-free.app/github-webhook/` under the GitHub repo's webhook settings.
+
+You can view the JUnit trend and Coverage report directly in the Jenkins UI after a build.
 
 ## 4. Test suites
 The testing harness consists of various layers, isolated by `DB_PATH`:
@@ -68,3 +112,13 @@ When a CI pipeline fails, triage can be assisted with AI (ChatGPT or Claude) usi
 - **Allowed-fail vs must-pass:** If the entire GitHub Actions pipeline fails because of `backend-spec`, ensure the job contains `continue-on-error: true`.
 - **Coverage badge not updating:** Coverage is only updated from the main branch. Check if the latest run generated the Cobertura report properly in the `backend-guard` step.
 - **Network timeouts in Jenkins:** If Jenkins cannot reach GitHub, ensure the container has DNS resolution. You may need to restart Docker Desktop.
+- **`install-plugin ... -restart` kills the container instead of restarting Jenkins:** the
+  official `jenkins/jenkins` Docker image has no process supervisor to respawn the JVM after
+  a safe-restart, so the container just exits. Fix: `docker start jenkins-demo` afterward, or
+  install plugins at image-build time (§3.1) instead of at runtime.
+- **CLI `create-job`/`build` fails with "Jenkins URL is not configured" or "Unexpected
+  request origin":** set the root URL under **Manage Jenkins → System → Jenkins URL** to
+  match exactly the host:port the CLI call is made against (e.g. `http://localhost:8080/`
+  if running `jenkins-cli.jar` from inside the container, not the host-mapped `8081`).
+- **Pipeline fails at parse time with "Invalid option type 'timestamps'":** the
+  **Timestamper** plugin isn't installed — add it to `plugins.txt` (§3.1).
