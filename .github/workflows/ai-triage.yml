@@ -4,7 +4,7 @@
 # to demonstrate where an automated AI layer adds value vs noise (e.g. it correlates failures
 # with PR diffs, so a flaky test with NO code change can be MISattributed — Failure Mode FM-2/3).
 #
-# Requires repo secret: ANTHROPIC_API_KEY (Settings > Secrets and variables > Actions).
+# Requires repo secret: MODEL_API_KEY (Groq key; Settings > Secrets and variables > Actions).
 # Non-blocking by construction: a separate workflow_run cannot fail the triggering pipeline.
 name: AI Triage (auto, exploratory)
 
@@ -12,6 +12,13 @@ on:
   workflow_run:
     workflows: ["CI/CD Pipeline"]
     types: [completed]
+  # Manual test harness: run against a specific failed run WITHOUT merging to default branch.
+  # Get a run id from: gh run list --workflow "CI/CD Pipeline"
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Workflow run ID of a failed CI/CD Pipeline run to analyze"
+        required: true
 
 permissions:
   contents: read
@@ -20,9 +27,9 @@ permissions:
 
 jobs:
   ai-triage:
-    name: Analyze failed pipeline with Claude
-    # Only run when the pipeline actually failed — no point triaging a green run.
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    name: Analyze failed pipeline (Groq)
+    # Auto path: only on a failed pipeline. Manual path: always (dispatch is explicit).
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +40,8 @@ jobs:
         continue-on-error: true   # exploratory: never let triage tooling break anything
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
+          # Manual dispatch supplies run_id; auto path uses the triggering run's id.
+          run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id }}
           # Groq is OpenAI-compatible: use the openai provider + Groq base URL.
           llm-provider: openai
           llm-model: llama-3.3-70b-versatile
