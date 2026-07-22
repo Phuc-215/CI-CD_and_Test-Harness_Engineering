@@ -1,0 +1,15 @@
+name: Set up Trunk Code Quality
+description: Install the existing frontend ESLint dependencies before Trunk runs.
+inputs:
+  cache-key:
+    description: Cache key supplied by the Trunk action.
+    required: false
+runs:
+  using: composite
+  steps:
+    - name: Install frontend-web dependencies
+      shell: bash
+      run: npm ci --legacy-peer-deps --prefix frontend-web
+    - name: Install frontend-admin dependencies
+      shell: bash
+      run: npm ci --legacy-peer-deps --prefix frontend-admin

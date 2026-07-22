@@ -6,10 +6,14 @@
   "scripts": {
     "test:spec": "cross-env DB_PATH=backend/test.sqlite mocha tests/api/spec --reporter mocha-junit-reporter --reporter-options mochaFile=reports/spec.xml --timeout 60000",
     "test:guard": "cross-env DB_PATH=backend/test.sqlite mocha tests/api/guard --timeout 20000",
-    "test:coverage": "cross-env DB_PATH=backend/test.sqlite nyc --reporter=html --reporter=json-summary --reporter=cobertura --reporter=text mocha tests/api/guard --timeout 20000",
-    "test:flaky": "cross-env DB_PATH=backend/test.sqlite mocha tests/api/flaky --reporter mocha-junit-reporter --reporter-options mochaFile=reports/flaky.xml --timeout 5000"
+    "test:coverage": "cross-env DB_PATH=backend/test.sqlite nyc --reporter=html --reporter=json-summary --reporter=cobertura --reporter=text mocha tests/api/guard --reporter mocha-junit-reporter --reporter-options mochaFile=reports/guard.xml --timeout 20000",
+    "test:flaky": "cross-env DB_PATH=backend/test.sqlite mocha tests/api/flaky --reporter mocha-junit-reporter --reporter-options mochaFile=reports/flaky.xml --timeout 5000",
+    "trunk": "trunk",
+    "lint": "trunk check",
+    "lint:all": "trunk check --all"
   },
   "devDependencies": {
+    "@trunkio/launcher": "^1.3.4",
     "chai": "^4.4.1",
     "cross-env": "^7.0.3",
     "make-coverage-badge": "^1.2.0",
