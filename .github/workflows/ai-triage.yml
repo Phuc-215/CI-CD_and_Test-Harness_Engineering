@@ -43,24 +43,13 @@ jobs:
           # Manual dispatch supplies run_id; auto path uses the triggering run's id.
           run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id }}
           # Groq is OpenAI-compatible: use the openai provider + Groq base URL.
+          # 8b-instant: fewer tokens per call than 70b, easier on the free-tier daily limit.
           llm-provider: openai
-          llm-model: llama-3.3-70b-versatile
+          llm-model: llama-3.1-8b-instant
           llm-api-key: ${{ secrets.MODEL_API_KEY }}
           llm-base-url: https://api.groq.com/openai/v1
           analyze-pr-context: 'true'
           post-pr-comment: 'true'
-
-      - name: Show triage summary
-        if: always()
-        run: |
-          echo "### AI Triage (automated, exploratory)" >> $GITHUB_STEP_SUMMARY
-          echo "**Category:** ${{ steps.triage.outputs.category }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "${{ steps.triage.outputs.summary }}" >> $GITHUB_STEP_SUMMARY
-
-      - name: Upload full JSON report
-        if: always() && steps.triage.outputs.report-path != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: ai-triage-report
-          path: ${{ steps.triage.outputs.report-path }}
+      # The action writes its own GitHub job summary and redacts secrets internally.
+      # No extra "echo summary" step (shell-injects on backticks) and no artifact upload
+      # (the report is written inside the action's container /tmp, unreachable by the runner).
