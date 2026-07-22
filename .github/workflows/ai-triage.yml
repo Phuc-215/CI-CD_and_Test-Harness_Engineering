@@ -34,9 +34,11 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
-          llm-provider: anthropic
-          llm-model: claude-sonnet-5
-          llm-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Groq is OpenAI-compatible: use the openai provider + Groq base URL.
+          llm-provider: openai
+          llm-model: llama-3.3-70b-versatile
+          llm-api-key: ${{ secrets.MODEL_API_KEY }}
+          llm-base-url: https://api.groq.com/openai/v1
           analyze-pr-context: 'true'
           post-pr-comment: 'true'
 

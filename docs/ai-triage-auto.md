@@ -12,11 +12,17 @@ GitHub Action that auto-analyzes a FAILED pipeline run with an LLM (Claude).
   disclosures). This is the "platform-analytics tier" exploratory add-on.
 
 ## Setup (one-time)
-1. Get an Anthropic API key.
+1. Get a **free Groq API key** at console.groq.com (Groq is OpenAI-compatible, free tier).
 2. Repo → Settings → Secrets and variables → Actions → New secret:
-   `ANTHROPIC_API_KEY = sk-ant-...`
+   `MODEL_API_KEY = gsk_...`
 3. Merge this branch (`feat/ai-triage-auto`) so `.github/workflows/ai-triage.yml` lands on the
    default branch — `workflow_run` triggers only fire from workflows on the default branch.
+
+Provider config in the workflow: `llm-provider: openai`, `llm-base-url:
+https://api.groq.com/openai/v1`, `llm-model: llama-3.3-70b-versatile`. Groq keys are not tied
+to a model at creation — the model is chosen per request via `llm-model`. Swap to
+`llama-3.1-8b-instant` for a faster/lighter run. Unlike local Ollama, Groq runs on the
+GitHub-hosted runner (no self-hosted runner needed).
 
 ## How it runs
 - Trigger: main pipeline fails → this workflow starts automatically.
