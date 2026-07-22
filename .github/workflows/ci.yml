@@ -125,7 +125,7 @@ jobs:
 
       - name: Install frontend deps
         working-directory: ${{ matrix.app }}
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Install Playwright Browsers
         working-directory: ${{ matrix.app }}
