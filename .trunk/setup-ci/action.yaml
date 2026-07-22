@@ -1,0 +1,11 @@
+name: Set up Trunk Code Quality
+description: Install the existing frontend ESLint dependencies before Trunk runs.
+runs:
+  using: composite
+  steps:
+    - name: Install frontend-web dependencies
+      shell: bash
+      run: npm ci --prefix frontend-web
+    - name: Install frontend-admin dependencies
+      shell: bash
+      run: npm ci --prefix frontend-admin

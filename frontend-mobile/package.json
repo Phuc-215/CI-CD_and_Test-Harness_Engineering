@@ -7,7 +7,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "jest"
+    "test": "jest",
+    "test:ci": "jest --ci --reporters=default --reporters=jest-junit"
   },
   "dependencies": {
     "expo": "~54.0.33",
@@ -16,10 +17,16 @@
     "react-native": "0.81.5"
   },
   "private": true,
+  "jest-junit": {
+    "outputDirectory": "../reports",
+    "outputName": "mobile.xml",
+    "reportTestSuiteErrors": "true"
+  },
   "devDependencies": {
     "@testing-library/react-native": "^14.0.1",
     "jest": "^30.4.2",
     "jest-expo": "^57.0.1",
+    "jest-junit": "^17.0.0",
     "react-test-renderer": "^19.2.7"
   }
 }
