@@ -1,0 +1,60 @@
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	﻿2026-07-23T04:35:58.5269561Z Current runner version: '2.336.0'
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5295874Z ##[group]Runner Image Provisioner
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5296870Z Hosted Compute Agent
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5298024Z Version: 20260707.563
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5298737Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5299658Z Build Date: 2026-07-07T19:33:50Z
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5300401Z Worker ID: {5f66e91e-9687-446f-865c-c7957f30aea3}
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5301219Z Azure Region: westus
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5301856Z ##[endgroup]
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5303885Z ##[group]Operating System
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5304717Z Ubuntu
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5305271Z 24.04.4
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5305878Z LTS
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5306435Z ##[endgroup]
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5307472Z ##[group]Runner Image
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5308708Z Image: ubuntu-24.04
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5309315Z Version: 20260714.240.1
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5310795Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260714.240/images/ubuntu/Ubuntu2404-Readme.md
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5312506Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260714.240
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5313645Z ##[endgroup]
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5314910Z ##[group]GITHUB_TOKEN Permissions
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5317586Z Contents: read
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5318259Z Metadata: read
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5318947Z Packages: read
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5319537Z ##[endgroup]
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5321765Z Secret source: Actions
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5322972Z Prepare workflow directory
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5680823Z Prepare all required actions
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.5726529Z Getting action download info
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:58.9300836Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:35:59.8744293Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.0411930Z Download action repository 'trunk-io/analytics-uploader@v1' (SHA:0e6c416c9d47c105654657984e5e4f0506dd84aa)
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.3003211Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.7044437Z Complete job name: Backend Spec Tests (allowed-fail)
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8104970Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8116714Z ##[group]Run actions/checkout@v4
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8118711Z with:
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8120034Z   repository: Phuc-215/CI-CD_and_Test-Harness_Engineering
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8129775Z   token: ***
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8130685Z   ssh-strict: true
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8131629Z   ssh-user: git
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8132590Z   persist-credentials: true
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8133631Z   clean: true
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8134585Z   sparse-checkout-cone-mode: true
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8135760Z   fetch-depth: 1
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8136695Z   fetch-tags: false
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8137822Z   show-progress: true
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8138755Z   lfs: false
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8139665Z   submodules: false
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8140600Z   set-safe-directory: true
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8141662Z   allow-unsafe-pr-checkout: false
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.8143099Z ##[endgroup]
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.9275740Z Syncing repository: Phuc-215/CI-CD_and_Test-Harness_Engineering
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.9280901Z ##[group]Getting Git version info
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.9284363Z Working directory is '/home/runner/work/CI-CD_and_Test-Harness_Engineering/CI-CD_and_Test-Harness_Engineering'
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:00.9289268Z [command]/usr/bin/git version
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:01.0847723Z git version 2.54.0
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:01.0874130Z ##[endgroup]
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:01.0888825Z Temporarily overriding HOME='/home/runner/work/_temp/9b21ff9a-de22-497b-887c-463e0028df75' before making global git config changes
+Backend Spec Tests (allowed-fail)	UNKNOWN STEP	2026-07-23T04:36:01.0893083Z Adding repository directory to the temporary git global config as a safe directory
