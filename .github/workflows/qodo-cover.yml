@@ -64,5 +64,8 @@ jobs:
           run_each_test_separately: true
           additional_instructions: >-
             Follow the existing Mocha, Chai, and Supertest conventions.
+            Generate new tests for changed production files under backend only.
+            Treat tests/helpers/supertest-app.js as test infrastructure, not as
+            the production source file whose coverage should be improved.
             Add tests only; do not modify production code.
             Do not call real external services.
