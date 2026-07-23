@@ -48,6 +48,7 @@ jobs:
           test_command: npm run test:coverage
           code_coverage_report_path: coverage/cobertura-coverage.xml
           coverage_type: cobertura
+          model: groq/llama-3.3-70b-versatile
           desired_coverage: ${{ inputs.desired_coverage }}
           max_iterations: 3
           run_each_test_separately: true
@@ -56,4 +57,4 @@ jobs:
             Add tests only; do not modify production code.
             Do not call real external services.
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
