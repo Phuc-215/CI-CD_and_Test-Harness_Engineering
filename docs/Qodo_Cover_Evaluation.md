@@ -1,6 +1,7 @@
 # Qodo Cover — Tool Evaluation
 
 Upstream: <https://github.com/qodo-ai/qodo-ci>, <https://docs.qodo.ai/>
+Companion how-to: [`Self_Hosted_Runner_Ollama_Setup.md`](./Self_Hosted_Runner_Ollama_Setup.md)
 
 We evaluated Qodo Cover as an autonomous unit-test-generation tool for the EShop backend, as the
 JavaScript-capable counterpart to Diffblue Agents (see
