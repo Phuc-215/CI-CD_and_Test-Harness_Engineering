@@ -42,7 +42,14 @@ jobs:
       - name: AI failure analysis
         id: triage
         uses: calebevans/gha-failure-analysis@v0.2.0
-        continue-on-error: true   # exploratory: never let triage tooling break anything
+        # Fail visibly while validating the local setup; restore true once it is stable.
+        continue-on-error: false
+        env:
+          # The Docker action runs as a non-root user and cannot write under /github/home.
+          HF_HOME: /tmp/huggingface
+          HF_HUB_CACHE: /tmp/huggingface/hub
+          XDG_CACHE_HOME: /tmp/cache
+          DSPY_CACHEDIR: /tmp/dspy-cache
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # Manual dispatch supplies run_id; auto path uses the triggering run's id.
