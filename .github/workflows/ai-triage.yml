@@ -4,7 +4,7 @@
 # to demonstrate where an automated AI layer adds value vs noise (e.g. it correlates failures
 # with PR diffs, so a flaky test with NO code change can be MISattributed — Failure Mode FM-2/3).
 #
-# Requires repo secret: MODEL_API_KEY (Groq key; Settings > Secrets and variables > Actions).
+# Requires repo secret: GROQ_API_KEY (Groq key; Settings > Secrets and variables > Actions).
 # Non-blocking by construction: a separate workflow_run cannot fail the triggering pipeline.
 name: AI Triage (auto, exploratory)
 
@@ -46,7 +46,7 @@ jobs:
           # 8b-instant: fewer tokens per call than 70b, easier on the free-tier daily limit.
           llm-provider: openai
           llm-model: llama-3.1-8b-instant
-          llm-api-key: ${{ secrets.MODEL_API_KEY }}
+          llm-api-key: ${{ secrets.GROQ_API_KEY }}
           llm-base-url: https://api.groq.com/openai/v1
           analyze-pr-context: 'true'
           post-pr-comment: 'true'

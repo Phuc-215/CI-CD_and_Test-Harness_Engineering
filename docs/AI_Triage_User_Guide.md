@@ -56,7 +56,7 @@ model** — you pick the model in the workflow, not when creating the key.
 
 1. Create a free key at <https://console.groq.com> → API Keys.
 2. In the repo: **Settings → Secrets and variables → Actions → New repository secret**.
-3. Name it exactly `MODEL_API_KEY`, paste the `gsk_...` value, save.
+3. Name it exactly `GROQ_API_KEY`, paste the `gsk_...` value, save.
 
 The workflow that uses it is `.github/workflows/ai-triage.yml`. It must live on the repo's
 **default branch** (currently `demo`) — GitHub only lets you trigger a workflow that exists on
