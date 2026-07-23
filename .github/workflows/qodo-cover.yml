@@ -1,0 +1,59 @@
+name: Qodo Cover
+
+on:
+  workflow_dispatch:
+    inputs:
+      desired_coverage:
+        description: Target coverage percentage
+        required: false
+        default: '80'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate-tests:
+    name: Generate backend tests
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install test harness dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Generate tests with Qodo Cover
+        uses: qodo-ai/qodo-ci/.github/actions/qodo-cover@v0.1.16
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref_name }}
+          project_language: javascript
+          project_root: .
+          source_folder: backend
+          test_folder: tests
+          test_command: npm run test:coverage
+          code_coverage_report_path: coverage/cobertura-coverage.xml
+          coverage_type: cobertura
+          desired_coverage: ${{ inputs.desired_coverage }}
+          max_iterations: 3
+          run_each_test_separately: true
+          additional_instructions: >-
+            Follow the existing Mocha, Chai, and Supertest conventions.
+            Add tests only; do not modify production code.
+            Do not call real external services.
+        env:
+          OPENAI_API_KEY: ${{ secrets.MODEL_API_KEY }}

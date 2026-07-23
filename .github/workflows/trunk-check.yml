@@ -1,0 +1,28 @@
+name: Trunk Code Quality
+
+on:
+  push:
+    branches: [demo]
+  pull_request:
+    branches: [demo]
+  workflow_dispatch:
+
+concurrency:
+  group: trunk-check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: read-all
+
+jobs:
+  trunk-check:
+    name: Trunk Code Quality
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trunk Code Quality
+        uses: trunk-io/trunk-action@v1

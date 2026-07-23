@@ -1,0 +1,178 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  backend-guard:
+    name: Backend Guard Tests (must pass)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+      - run: npm run test:coverage
+      - name: Upload guard test results to Trunk.io
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: trunk-io/analytics-uploader@v1
+        with:
+          junit-paths: reports/guard.xml
+          org-slug: ${{ secrets.TRUNK_ORG_URL_SLUG }}
+          token: ${{ secrets.TRUNK_API_TOKEN }}
+      - name: Generate Coverage Badge
+        run: npx make-coverage-badge
+      - name: Commit Coverage Badge
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update coverage badge [skip ci]"
+          file_pattern: "coverage/badge.svg"
+
+  backend-spec:
+    name: Backend Spec Tests (allowed-fail)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+      - run: npm run test:spec
+      - name: Upload spec test results to Trunk.io
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: trunk-io/analytics-uploader@v1
+        with:
+          junit-paths: reports/spec.xml
+          org-slug: ${{ secrets.TRUNK_ORG_URL_SLUG }}
+          token: ${{ secrets.TRUNK_API_TOKEN }}
+      - name: Upload Spec Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: spec-test-results
+          path: reports/spec.xml
+
+  flaky-watch:
+    name: Flaky Test Watch (allowed-fail, x10 evidence)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+      - name: Run flaky suite
+        run: npm run test:flaky
+      - name: Upload flaky test results to Trunk.io
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: trunk-io/analytics-uploader@v1
+        with:
+          junit-paths: reports/flaky.xml
+          org-slug: ${{ secrets.TRUNK_ORG_URL_SLUG }}
+          token: ${{ secrets.TRUNK_API_TOKEN }}
+      - name: Upload flaky result (per run)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: flaky-run-${{ github.run_number }}
+          path: reports/flaky.xml
+
+  web-smoke:
+    name: Web & Admin Smoke Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [frontend-web, frontend-admin]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      - name: Install root test harness dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Install frontend deps
+        working-directory: ${{ matrix.app }}
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright Browsers
+        working-directory: ${{ matrix.app }}
+        run: npx playwright install --with-deps
+
+      - name: Start Backend
+        run: node backend/server.js &
+        env:
+          DB_PATH: backend/test.sqlite
+          PORT: 3000
+
+      - name: Run Playwright Tests
+        working-directory: ${{ matrix.app }}
+        run: npx playwright test
+
+      - name: Upload Playwright results to Trunk.io
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: trunk-io/analytics-uploader@v1
+        with:
+          junit-paths: reports/playwright.xml
+          org-slug: ${{ secrets.TRUNK_ORG_URL_SLUG }}
+          token: ${{ secrets.TRUNK_API_TOKEN }}
+
+  mobile-smoke:
+    name: Mobile Smoke Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      - name: Install mobile deps
+        working-directory: frontend-mobile
+        run: npm ci --legacy-peer-deps
+
+      - name: Run Jest Tests
+        working-directory: frontend-mobile
+        run: npm run test:ci
+
+      - name: Upload mobile test results to Trunk.io
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: trunk-io/analytics-uploader@v1
+        with:
+          junit-paths: reports/mobile.xml
+          org-slug: ${{ secrets.TRUNK_ORG_URL_SLUG }}
+          token: ${{ secrets.TRUNK_API_TOKEN }}

@@ -1,0 +1,39 @@
+# This file controls the behavior of Trunk: https://docs.trunk.io/cli
+# To learn more about the format of this file, see https://docs.trunk.io/reference/trunk-yaml
+version: 0.1
+cli:
+  version: 1.25.0
+repo:
+  trunk_branch: main
+# Trunk provides extensibility via plugins. (https://docs.trunk.io/plugins)
+plugins:
+  sources:
+    - id: trunk
+      ref: v1.10.2
+      uri: https://github.com/trunk-io/plugins
+# Many linters and tools depend on runtimes - configure them here. (https://docs.trunk.io/runtimes)
+runtimes:
+  enabled:
+    - node@22.16.0
+# This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
+lint:
+  enabled:
+    - actionlint@1.7.8
+    - eslint@10.3.0
+    - git-diff-check
+  ignore:
+    - linters: [ALL]
+      paths:
+        - node_modules/**
+        - "**/node_modules/**"
+        - coverage/**
+        - reports/**
+        - .nyc_output/**
+        - "**/dist/**"
+        - playwright-report/**
+        - test-results/**
+    - linters: [eslint]
+      paths:
+        - backend/**
+        - tests/**
+        - frontend-mobile/**
