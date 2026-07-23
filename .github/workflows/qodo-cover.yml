@@ -49,7 +49,7 @@ jobs:
           project_language: javascript
           project_root: .
           source_folder: backend
-          test_folder: tests
+          test_folder: tests/api/guard
           test_command: npm run test:coverage
           code_coverage_report_path: coverage/cobertura-coverage.xml
           coverage_type: cobertura
