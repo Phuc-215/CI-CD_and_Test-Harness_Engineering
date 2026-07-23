@@ -7,6 +7,7 @@ const jwt = require("jsonwebtoken");
 const app = express();
 const PORT = 3000;
 const SECRET_KEY = "super_secret_key_that_should_not_be_here";
+const LOGIN_LOCK_DURATION_MS = 180000;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -54,7 +55,9 @@ app.post("/api/login", (req, res) => {
       const newAttempts = user.login_attempts + 2;
       let lockedUntil = null;
       if (newAttempts >= 3) {
-        lockedUntil = new Date(Date.now() + 180000).toISOString();
+        lockedUntil = new Date(
+          Date.now() + LOGIN_LOCK_DURATION_MS,
+        ).toISOString();
       }
       db.run(
         "UPDATE users SET login_attempts = ?, locked_until = ? WHERE id = ?",

@@ -1,6 +1,10 @@
 const request = require("supertest");
 const { expect } = require("chai");
-const { app, reseed } = require("../../helpers/supertest-app");
+const {
+  app,
+  reseed,
+  bearerAuth,
+} = require("../../helpers/supertest-app");
 
 describe("Guard Suite - Actual Buggy Behavior", () => {
   let userToken;
@@ -17,11 +21,20 @@ describe("Guard Suite - Actual Buggy Behavior", () => {
     adminToken = aRes.body.token;
   });
 
+  describe("Authentication guard", () => {
+    it("rejects access to the current-user endpoint without a bearer token", async () => {
+      const res = await request(app).get("/api/users/me");
+
+      expect(res.status).to.equal(401);
+      expect(res.body).to.deep.equal({ error: "Unauthorized User" });
+    });
+  });
+
   describe("FR04", () => {
     it("BUG-04: allows privilege escalation (setting role to admin)", async () => {
-      await request(app).put("/api/users/me").set("Authorization", `Bearer ${userToken}`)
+      await request(app).put("/api/users/me").set(bearerAuth(userToken))
         .send({ role: "admin", name: "hacked", shipping_address: "hacked", phone: "123" });
-      const meRes = await request(app).get("/api/users/me").set("Authorization", `Bearer ${userToken}`);
+      const meRes = await request(app).get("/api/users/me").set(bearerAuth(userToken));
       expect(meRes.body.role).to.equal("admin");
     });
 
