@@ -9,4 +9,18 @@ else
   unset LD_LIBRARY_PATH
 fi
 
-exec npm run test:coverage -- "$@"
+if (( $# == 0 )); then
+  set -- tests/api/guard
+fi
+
+export DB_PATH=backend/test.sqlite
+
+exec npx --no-install nyc \
+  --reporter=html \
+  --reporter=json-summary \
+  --reporter=cobertura \
+  --reporter=text \
+  mocha "$@" \
+  --reporter mocha-junit-reporter \
+  --reporter-options mochaFile=reports/guard.xml \
+  --timeout 20000
