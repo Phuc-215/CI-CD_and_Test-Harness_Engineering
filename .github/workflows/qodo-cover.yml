@@ -55,7 +55,7 @@ jobs:
           project_root: .
           source_folder: .
           test_folder: tests/api/guard
-          test_command: npm run test:coverage
+          test_command: bash scripts/qodo-test-coverage.sh
           code_coverage_report_path: coverage/cobertura-coverage.xml
           coverage_type: cobertura
           model: ollama_chat/qwen2.5-coder:7b
