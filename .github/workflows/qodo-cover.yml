@@ -56,4 +56,4 @@ jobs:
             Add tests only; do not modify production code.
             Do not call real external services.
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.MODEL_API_KEY }}
