@@ -26,7 +26,7 @@ describe("Guard Suite - Actual Buggy Behavior", () => {
       const res = await request(app).get("/api/users/me");
 
       expect(res.status).to.equal(401);
-      expect(res.body).to.deep.equal({ error: "Unauthorized" });
+      expect(res.body).to.deep.equal({ error: "Unauthorized User" });
     });
   });
 
