@@ -1,12 +1,11 @@
 name: Qodo Cover
 
 on:
-  workflow_dispatch:
-    inputs:
-      desired_coverage:
-        description: Target coverage percentage
-        required: false
-        default: '80'
+  pull_request:
+    branches:
+      - demo
+    types:
+      - labeled
 
 permissions:
   contents: write
@@ -15,6 +14,11 @@ permissions:
 jobs:
   generate-tests:
     name: Generate backend tests
+    if: >-
+      github.event.label.name == 'qodo-cover' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.state == 'open' &&
+      github.event.pull_request.draft == false
     runs-on: [self-hosted, Linux, X64]
 
     steps:
@@ -42,10 +46,11 @@ jobs:
           ollama show qwen2.5-coder:7b
 
       - name: Generate tests with Qodo Cover
-        uses: qodo-ai/qodo-ci/.github/actions/qodo-cover@v0.1.16
+        uses: qodo-ai/qodo-ci/.github/actions/qodo-cover-pr@v0.1.16
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref_name }}
+          branch: demo
+          diff_coverage: false
           project_language: javascript
           project_root: .
           source_folder: .
@@ -54,7 +59,7 @@ jobs:
           code_coverage_report_path: coverage/cobertura-coverage.xml
           coverage_type: cobertura
           model: ollama_chat/qwen2.5-coder:7b
-          desired_coverage: ${{ inputs.desired_coverage }}
+          desired_coverage: 80
           max_iterations: 3
           run_each_test_separately: true
           additional_instructions: >-
