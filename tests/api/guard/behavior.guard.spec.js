@@ -21,6 +21,15 @@ describe("Guard Suite - Actual Buggy Behavior", () => {
     adminToken = aRes.body.token;
   });
 
+  describe("Authentication guard", () => {
+    it("rejects access to the current-user endpoint without a bearer token", async () => {
+      const res = await request(app).get("/api/users/me");
+
+      expect(res.status).to.equal(401);
+      expect(res.body).to.deep.equal({ error: "Unauthorized" });
+    });
+  });
+
   describe("FR04", () => {
     it("BUG-04: allows privilege escalation (setting role to admin)", async () => {
       await request(app).put("/api/users/me").set(bearerAuth(userToken))
