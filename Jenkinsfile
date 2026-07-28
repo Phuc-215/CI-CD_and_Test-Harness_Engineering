@@ -244,8 +244,11 @@ pipeline {
                 git config user.name "Jenkins CI"
                 git config user.email "jenkins-ci@users.noreply.github.com"
                 REPOSITORY="${GH_REPOSITORY:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}"
-                TARGET_BRANCH="${GH_PR_HEAD_REF:-${GH_REF#refs/heads/}}"
+                REF_VALUE="${GH_REF:-}"
+                GIT_BRANCH_VALUE="${GIT_BRANCH:-}"
+                TARGET_BRANCH="${GH_PR_HEAD_REF:-${REF_VALUE#refs/heads/}}"
                 TARGET_BRANCH="${TARGET_BRANCH:-${BRANCH_NAME:-}}"
+                TARGET_BRANCH="${TARGET_BRANCH:-${GIT_BRANCH_VALUE#origin/}}"
                 if [ -z "$TARGET_BRANCH" ]; then
                   echo "Cannot determine a safe badge target branch; leaving badge as an artifact."
                   exit 0
