@@ -3,11 +3,11 @@ set -euo pipefail
 
 PR_NUMBER="${1:?usage: jenkins-qodo-cover.sh <pr-number>}"
 : "${GH_TOKEN:?GH_TOKEN Jenkins credential is required}"
-# Generic Webhook Trigger can expose its JSONPath default literally on manual
-# builds. Treat that value as absent and infer the repository from the checkout.
-if [ -z "${GH_REPOSITORY:-}" ] || [[ "$GH_REPOSITORY" == '$.'* ]]; then
-  GH_REPOSITORY="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
-fi
+# The Jenkins SCM checkout is authoritative. `gh repo view` may resolve a fork
+# to its parent, while manual Generic Trigger variables may contain JSONPath
+# placeholders rather than webhook values.
+ORIGIN_URL="$(git remote get-url origin)"
+GH_REPOSITORY="$(printf '%s' "$ORIGIN_URL" | sed -E 's#^https://github.com/##; s#^git@github.com:##; s#\.git$##')"
 : "${GH_REPOSITORY:?Unable to determine the GitHub repository}"
 
 ACTION_REF="${QODO_ACTION_REF:-v0.1.16}"
