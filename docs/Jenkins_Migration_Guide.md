@@ -20,10 +20,9 @@ The named volume persists Jenkins configuration and the npm, Playwright, and Qod
 Do not disable Jenkins authentication when port 8080 is reachable outside the development
 machine.
 
-Under **Manage Jenkins → Tools**, add a NodeJS installation named exactly `node20`. Select
-the newest Node 20 release, at least 20.19. The image already contains GitHub CLI, Python,
-SQLite, jq, process tools, and Chromium's system libraries. The pipeline downloads Chromium
-into its persistent cache.
+The image contains Node 20.19.5, GitHub CLI, Python, SQLite, jq, process tools, and
+Chromium's system libraries. The pipeline downloads Chromium into its persistent cache; no
+manual Jenkins tool registration is required.
 
 Ollama must listen on the Docker host at port 11434:
 

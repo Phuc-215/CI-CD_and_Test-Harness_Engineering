@@ -3,8 +3,6 @@
 pipeline {
   agent any
 
-  tools { nodejs 'node20' } // Configure Node >= 20.19 under Manage Jenkins > Tools.
-
   parameters {
     choice(name: 'RUN_MODE', choices: ['AUTO', 'CI', 'QODO', 'TRIAGE'], description: 'AUTO classifies a GitHub webhook; other values are manual modes.')
     string(name: 'PR_NUMBER', defaultValue: '', description: 'Required for manual QODO; optional for TRIAGE.')
