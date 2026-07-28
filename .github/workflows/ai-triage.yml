@@ -4,7 +4,7 @@
 # to demonstrate where an automated AI layer adds value vs noise (e.g. it correlates failures
 # with PR diffs, so a flaky test with NO code change can be MISattributed — Failure Mode FM-2/3).
 #
-# Uses the same self-hosted Ollama instance and model as the Qodo Cover workflow.
+# Uses GitHub Models with the workflow's built-in GITHUB_TOKEN.
 # Non-blocking by construction: a separate workflow_run cannot fail the triggering pipeline.
 name: AI Triage (auto, exploratory)
 
@@ -24,25 +24,20 @@ permissions:
   contents: read
   pull-requests: write   # allows optional PR comment
   actions: read          # read logs/artifacts of the triggering run
+  models: read           # invoke GitHub Models
 
 jobs:
   ai-triage:
-    name: Analyze failed pipeline (local Ollama)
+    name: Analyze failed pipeline (GitHub Models)
     # Auto path: only on a failed pipeline. Manual path: always (dispatch is explicit).
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure' }}
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-
-      - name: Verify local Ollama model
-        run: |
-          curl --fail --silent --show-error http://127.0.0.1:11434/api/tags > /dev/null
-          ollama show qwen2.5-coder:7b
 
       - name: AI failure analysis
         id: triage
         uses: calebevans/gha-failure-analysis@v0.2.0
-        # Fail visibly while validating the local setup; restore true once it is stable.
         continue-on-error: false
         env:
           # The Docker action runs as a non-root user and cannot write under /github/home.
@@ -54,12 +49,11 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # Manual dispatch supplies run_id; auto path uses the triggering run's id.
           run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id }}
-          # This action runs in Docker, so use the Docker host gateway instead of localhost.
-          llm-provider: ollama
-          llm-model: qwen2.5-coder:7b
-          # v0.2.0 validates this input even though local Ollama ignores API keys.
-          llm-api-key: ollama
-          llm-base-url: http://172.17.0.1:11434
+          # GitHub Models exposes an OpenAI-compatible API.
+          llm-provider: openai
+          llm-model: openai/gpt-4.1
+          llm-api-key: ${{ secrets.GITHUB_TOKEN }}
+          llm-base-url: https://models.github.ai/inference
           analyze-pr-context: 'true'
           post-pr-comment: 'true'
       # The action writes its own GitHub job summary and redacts secrets internally.
