@@ -1,9 +1,29 @@
 const { expect } = require("chai");
-const app = require("../../../backend/app");
+const { authenticateToken } = require("../../../backend/app");
 
-describe("backend/app unit tests", () => {
-  it("exports a configured Express application", () => {
-    expect(app).to.be.a("function");
-    expect(app.use).to.be.a("function");
+describe("authenticateToken", () => {
+  it("rejects a request without an authorization token", () => {
+    const req = { headers: {} };
+    const res = {
+      statusCode: null,
+      body: null,
+      status(code) {
+        this.statusCode = code;
+        return this;
+      },
+      json(body) {
+        this.body = body;
+        return this;
+      },
+    };
+    let nextCalled = false;
+
+    authenticateToken(req, res, () => {
+      nextCalled = true;
+    });
+
+    expect(res.statusCode).to.equal(401);
+    expect(res.body).to.deep.equal({ error: "Unauthorized" });
+    expect(nextCalled).to.equal(false);
   });
 });

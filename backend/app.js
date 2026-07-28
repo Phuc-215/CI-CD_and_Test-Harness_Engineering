@@ -571,3 +571,4 @@ app.put("/api/admin/orders/:id/status", authenticateToken, (req, res) => {
 });
 
 module.exports = app;
+module.exports.authenticateToken = authenticateToken;
