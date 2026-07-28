@@ -53,7 +53,7 @@ jobs:
           diff_coverage: false
           project_language: javascript
           project_root: .
-          source_folder: backend
+          source_folder: .
           test_folder: tests/api/guard
           test_command: bash scripts/qodo-test-coverage.sh
           code_coverage_report_path: coverage/cobertura-coverage.xml
