@@ -59,7 +59,7 @@ jobs:
           test_command: bash scripts/qodo-test-coverage.sh
           code_coverage_report_path: coverage/cobertura-coverage.xml
           coverage_type: cobertura
-          model: github/gpt-4o
+          model: github/gpt-4.1
           desired_coverage: 70
           max_iterations: 3
           run_each_test_separately: true
