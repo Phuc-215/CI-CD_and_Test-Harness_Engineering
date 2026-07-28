@@ -3,10 +3,13 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const db = require("./database");
 const jwt = require("jsonwebtoken");
+const {
+  authenticateToken,
+  SECRET_KEY,
+} = require("./middleware/authenticate-token");
 
 const app = express();
 const PORT = 3000;
-const SECRET_KEY = "super_secret_key_that_should_not_be_here";
 const LOGIN_LOCK_DURATION_MS = 180000;
 
 app.use(cors());
@@ -99,18 +102,6 @@ app.post("/api/reset-password", (req, res) => {
     },
   );
 });
-
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-  if (token == null) return res.status(401).json({ error: "Unauthorized" });
-
-  jwt.verify(token, SECRET_KEY, (err, user) => {
-    if (err) return res.status(403).json({ error: "Forbidden" });
-    req.user = user;
-    next();
-  });
-};
 
 app.get("/api/users/me", authenticateToken, (req, res) => {
   db.get("SELECT * FROM users WHERE id = ?", [req.user.id], (err, user) => {
@@ -571,4 +562,3 @@ app.put("/api/admin/orders/:id/status", authenticateToken, (req, res) => {
 });
 
 module.exports = app;
-module.exports.authenticateToken = authenticateToken;

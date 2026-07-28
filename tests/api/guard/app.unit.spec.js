@@ -1,5 +1,7 @@
 const { expect } = require("chai");
-const { authenticateToken } = require("../../../backend/app");
+const {
+  authenticateToken,
+} = require("../../../backend/middleware/authenticate-token");
 
 describe("authenticateToken", () => {
   it("rejects a request without an authorization token", () => {
