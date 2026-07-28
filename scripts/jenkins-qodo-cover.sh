@@ -23,18 +23,20 @@ export GITHUB_TOKEN="$GH_TOKEN"
 export GITHUB_API_KEY="$GH_TOKEN"
 export GITHUB_WORKSPACE="$WORKSPACE"
 
-PR_JSON="$(gh pr view "$PR_NUMBER" --repo "$GH_REPOSITORY" --json state,isDraft,headRefName,headRepository,baseRefName,files)"
+PR_JSON="$(gh pr view "$PR_NUMBER" --repo "$GH_REPOSITORY" --json state,isDraft,headRefName,headRefOid,headRepository,headRepositoryOwner,baseRefName,files)"
+HEAD_REF="$(node -e 'console.log(JSON.parse(process.argv[1]).headRefName)' "$PR_JSON")"
+HEAD_OID="$(node -e 'console.log(JSON.parse(process.argv[1]).headRefOid)' "$PR_JSON")"
+REPOSITORY_HEAD_OID="$(gh api "repos/${GH_REPOSITORY}/git/ref/heads/${HEAD_REF}" --jq .object.sha 2>/dev/null || true)"
 node -e '
   const p=JSON.parse(process.argv[1]);
-  console.log(`Qodo PR validation: repo=${process.argv[2]} head=${p.headRepository?.nameWithOwner ?? "unknown"} base=${p.baseRefName} state=${p.state} draft=${p.isDraft}`);
+  console.log(`Qodo PR validation: repo=${process.argv[2]} head=${p.headRepository?.nameWithOwner ?? "unknown"} owner=${p.headRepositoryOwner?.login ?? "unknown"} base=${p.baseRefName} state=${p.state} draft=${p.isDraft}`);
 ' "$PR_JSON" "$GH_REPOSITORY"
 node -e '
   const p=JSON.parse(process.argv[1]);
-  const sameRepo = p.headRepository?.nameWithOwner === process.argv[2];
+  const sameRepo = Boolean(process.argv[3]) && p.headRefOid === process.argv[3];
   if (p.state !== "OPEN" || p.isDraft || p.baseRefName !== "demo" || !sameRepo) process.exit(2);
-' "$PR_JSON" "$GH_REPOSITORY" || { echo "PR must be open, non-draft, target demo, and originate in the same repository"; exit 2; }
+' "$PR_JSON" "$GH_REPOSITORY" "$REPOSITORY_HEAD_OID" || { echo "PR must be open, non-draft, target demo, and originate in the same repository"; exit 2; }
 
-HEAD_REF="$(node -e 'console.log(JSON.parse(process.argv[1]).headRefName)' "$PR_JSON")"
 node -e '
   const fs=require("fs"), path=require("path");
   const p=JSON.parse(process.argv[1]), root=process.argv[2];
