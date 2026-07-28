@@ -41,7 +41,7 @@ jobs:
 
       - name: Install backend dependencies
         working-directory: backend
-        run: npm ci
+        run: npm ci --build-from-source
 
       - name: Generate tests with Qodo Cover
         uses: qodo-ai/qodo-ci/.github/actions/qodo-cover-pr@v0.1.16
