@@ -26,6 +26,10 @@ export GITHUB_WORKSPACE="$WORKSPACE"
 PR_JSON="$(gh pr view "$PR_NUMBER" --repo "$GH_REPOSITORY" --json state,isDraft,headRefName,headRepository,baseRefName,files)"
 node -e '
   const p=JSON.parse(process.argv[1]);
+  console.log(`Qodo PR validation: repo=${process.argv[2]} head=${p.headRepository?.nameWithOwner ?? "unknown"} base=${p.baseRefName} state=${p.state} draft=${p.isDraft}`);
+' "$PR_JSON" "$GH_REPOSITORY"
+node -e '
+  const p=JSON.parse(process.argv[1]);
   const sameRepo = p.headRepository?.nameWithOwner === process.argv[2];
   if (p.state !== "OPEN" || p.isDraft || p.baseRefName !== "demo" || !sameRepo) process.exit(2);
 ' "$PR_JSON" "$GH_REPOSITORY" || { echo "PR must be open, non-draft, target demo, and originate in the same repository"; exit 2; }

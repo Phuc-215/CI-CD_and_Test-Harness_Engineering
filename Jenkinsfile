@@ -271,7 +271,7 @@ pipeline {
           sh '''
             set -o pipefail
             npm ci --prefer-offline
-            (cd backend && npm ci --build-from-source --prefer-offline)
+                (cd backend && npm ci --prefer-offline)
             bash scripts/jenkins-qodo-cover.sh "$EFFECTIVE_PR" 2>&1 | tee logs/qodo-cover.log
           '''
         }
