@@ -1,10 +1,11 @@
 const request = require("supertest");
 const { expect } = require("chai");
-const {
-  app,
-  reseed,
-  bearerAuth,
-} = require("../../helpers/supertest-app");
+const app = require("../../../backend/app");
+const { reseed } = require("../../helpers/reseed");
+
+function bearerAuth(token) {
+  return { Authorization: `Bearer ${token}` };
+}
 
 describe("Guard Suite - Actual Buggy Behavior", () => {
   let userToken;
@@ -26,7 +27,7 @@ describe("Guard Suite - Actual Buggy Behavior", () => {
       const res = await request(app).get("/api/users/me");
 
       expect(res.status).to.equal(401);
-      expect(res.body).to.deep.equal({ error: "Unauthorized User" });
+      expect(res.body).to.deep.equal({ error: "Unauthorized" });
     });
   });
 
