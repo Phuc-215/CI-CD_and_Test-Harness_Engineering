@@ -6,20 +6,24 @@ on:
       - demo
     types:
       - labeled
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
 
 permissions:
   contents: write
   pull-requests: write
+  models: read
 
 jobs:
   generate-tests:
     name: Generate backend tests
     if: >-
-      github.event.label.name == 'qodo-cover' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.state == 'open' &&
       github.event.pull_request.draft == false
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Check out repository
@@ -38,15 +42,12 @@ jobs:
 
       - name: Install backend dependencies
         working-directory: backend
-        run: npm ci
-
-      - name: Verify local Ollama model
-        run: |
-          curl --fail --silent --show-error http://127.0.0.1:11434/api/tags > /dev/null
-          ollama show qwen2.5-coder:7b
+        run: npm ci --build-from-source
 
       - name: Generate tests with Qodo Cover
         uses: qodo-ai/qodo-ci/.github/actions/qodo-cover-pr@v0.1.16
+        env:
+          GITHUB_API_KEY: ${{ secrets.GITHUB_TOKEN }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: demo
@@ -58,8 +59,8 @@ jobs:
           test_command: bash scripts/qodo-test-coverage.sh
           code_coverage_report_path: coverage/cobertura-coverage.xml
           coverage_type: cobertura
-          model: ollama_chat/qwen2.5-coder:7b
-          desired_coverage: 80
+          model: github/gpt-4.1
+          desired_coverage: 70
           max_iterations: 3
           run_each_test_separately: true
           additional_instructions: >-
