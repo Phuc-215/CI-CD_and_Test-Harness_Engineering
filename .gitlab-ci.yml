@@ -1,0 +1,83 @@
+# T07 Seminar — GitLab CI pipeline.
+# Mirrors .github/workflows/ci.yml / Jenkinsfile stage-for-stage for a clean 3-way comparison.
+# GHA `continue-on-error: true`  <-> GitLab `allow_failure: true`.
+# GHA `upload-artifact`          <-> GitLab `artifacts:` (+ `reports:junit`/`reports:coverage_report`).
+# GHA `strategy.matrix`          <-> GitLab `parallel:matrix`.
+
+image: node:20
+
+stages:
+  - test
+  - smoke
+
+variables:
+  DB_PATH: backend/test.sqlite
+
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - .npm/
+
+.npm_ci: &npm_ci
+  - npm ci --cache .npm --prefer-offline
+
+backend-guard:
+  stage: test
+  script:
+    - *npm_ci
+    - npm run test:coverage
+  coverage: '/All files\s*\|\s*([\d.]+)/'
+  artifacts:
+    when: always
+    paths:
+      - coverage/
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+
+backend-spec:
+  stage: test
+  allow_failure: true
+  script:
+    - *npm_ci
+    - npm run test:spec
+  artifacts:
+    when: always
+    paths:
+      - reports/spec.xml
+    reports:
+      junit: reports/spec.xml
+
+flaky-watch:
+  stage: test
+  allow_failure: true
+  script:
+    - *npm_ci
+    - npm run test:flaky
+  artifacts:
+    when: always
+    paths:
+      - reports/flaky.xml
+    reports:
+      junit: reports/flaky.xml
+
+web-smoke:
+  stage: smoke
+  parallel:
+    matrix:
+      - APP: [frontend-web, frontend-admin]
+  script:
+    - *npm_ci
+    - cd $APP && npm ci && npx playwright install --with-deps && cd ..
+    - cross-env DB_PATH=$DB_PATH node backend/server.js &
+    - cd $APP && npx playwright test
+
+mobile-smoke:
+  stage: smoke
+  script:
+    - cd frontend-mobile
+    - npm ci
+    - npm test

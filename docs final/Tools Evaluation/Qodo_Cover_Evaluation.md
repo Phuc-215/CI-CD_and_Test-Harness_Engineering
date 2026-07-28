@@ -1,10 +1,12 @@
 # Qodo Cover — Tool Evaluation
 
 Upstream: <https://github.com/qodo-ai/qodo-ci>, <https://docs.qodo.ai/>
+Companion how-to: [`Qodo_Cover_User_Guide.md`](./Qodo_Cover_User_Guide.md) (workflow setup) and
+[`Self_Hosted_Runner_Ollama_User_Guide.md`](./Self_Hosted_Runner_Ollama_User_Guide.md) (runner/model setup)
 
 We evaluated Qodo Cover as an autonomous unit-test-generation tool for the EShop backend, as the
 JavaScript-capable counterpart to Diffblue Agents (see
-[`Diffblue_Agents_Evaluation.md`](./Diffblue_Agents_Evaluation.md), not adopted because it does
+[`Diffblue_Agents_Evaluation.md`](../docs/Diffblue_Agents_Evaluation.md), not adopted because it does
 not support JavaScript). This note records what the tool is, how it is configured in our pipeline,
 and what we observed from one real run against PR #52 (branch `qodo-cover-test`, labeled
 `qodo-cover`), which modified `backend/app.js`.
@@ -26,7 +28,7 @@ not for this project.
    check.
 2. **Execution environment** — it runs on a self-hosted runner against a **local Ollama** model
    (`qwen2.5-coder:7b`), the same offline setup used by our automated GHA-failure-triage workflow
-   (see [`GHA_Failure_Analysis_Evaluation.md`](./GHA_Failure_Analysis_Evaluation.md)) — no paid
+   (see [`GHA_Failure_Analysis_Evaluation.md`](../docs/GHA_Failure_Analysis_Evaluation.md)) — no paid
    LLM API key required.
 3. **Scope** — it is pointed at `tests/api/guard` as the target test folder and
    `npm run test:coverage` (an `nyc`-instrumented Mocha run emitting a Cobertura report) as the

@@ -1,13 +1,13 @@
 # Trunk.io — Tool Evaluation
 
 Upstream: <https://trunk.io/>
-Companion how-to: [`Trunk_IO_Installation_Report.md`](./Trunk_IO_Installation_Report.md)
+Companion how-to: [`Trunk_IO_User_Guide.md`](./Trunk_IO_User_Guide.md)
 
 We evaluated Trunk.io as a unified code-quality gate and flaky-test-analytics layer for the EShop
 monorepo. This note records what the tool is, how it works, and how it behaved once wired into
 our GitHub Actions pipeline. Full installation steps, configuration files, and every issue fixed
 along the way are documented separately in
-[`Trunk_IO_Installation_Report.md`](./Trunk_IO_Installation_Report.md); this note stays at the
+[`Trunk_IO_User_Guide.md`](./Trunk_IO_User_Guide.md); this note stays at the
 evaluation level.
 
 ## 1. What it is
@@ -62,7 +62,7 @@ Two design choices stood out during evaluation:
   `working-directory: backend` on `npm ci`, an out-of-sync Playwright admin port, and out-of-date
   frontend lockfiles. These were pre-existing pipeline bugs that integration work exposed, fixed
   as prerequisites, and are detailed in
-  [`Trunk_IO_Installation_Report.md`](./Trunk_IO_Installation_Report.md#8-các-vấn-đề-được-phát-hiện-và-xử-lý).
+  [`Trunk_IO_User_Guide.md`](./Trunk_IO_User_Guide.md#8-issues-found-and-fixed).
 - **Pre-existing app/test defects remain, correctly unmasked.** Web Playwright still fails on a
   missing `type="email"` input; mobile Jest still fails on a Jest 30 / Expo preset
   incompatibility; backend spec has 14 pre-existing failures. Trunk reports these as-is rather
@@ -82,4 +82,4 @@ JUnit-reporter plumbing per test runner, not Trunk-specific complexity.
 codebase, Trunk gave us a single CI gate and a runner-agnostic flakiness view without rewriting
 any existing test or lint setup. Organization/token setup and enabling the branch-protection check
 are account-level steps still pending on GitHub and Trunk.io — see
-[`Trunk_IO_Installation_Report.md`](./Trunk_IO_Installation_Report.md#11-việc-còn-lại-trên-github-và-trunkio).
+[`Trunk_IO_User_Guide.md`](./Trunk_IO_User_Guide.md#11-remaining-work-on-github-and-trunkio).
