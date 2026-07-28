@@ -3,7 +3,11 @@ set -euo pipefail
 
 PR_NUMBER="${1:?usage: jenkins-qodo-cover.sh <pr-number>}"
 : "${GH_TOKEN:?GH_TOKEN Jenkins credential is required}"
-GH_REPOSITORY="${GH_REPOSITORY:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}"
+# Generic Webhook Trigger can expose its JSONPath default literally on manual
+# builds. Treat that value as absent and infer the repository from the checkout.
+if [ -z "${GH_REPOSITORY:-}" ] || [[ "$GH_REPOSITORY" == '$.'* ]]; then
+  GH_REPOSITORY="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
+fi
 : "${GH_REPOSITORY:?Unable to determine the GitHub repository}"
 
 ACTION_REF="${QODO_ACTION_REF:-v0.1.16}"
