@@ -9,6 +9,8 @@ import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl
 import org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import com.cloudbees.plugins.credentials.SystemCredentialsProvider
+import hudson.model.User
+import jenkins.security.ApiTokenProperty
 
 // Idempotent bootstrap for the local Docker demo. Secrets are injected as one-time files
 // in JENKINS_HOME and deleted immediately after they enter Jenkins' encrypted credential store.
@@ -71,6 +73,24 @@ if (repoUrl) {
   job.setDefinition(definition)
   job.setDescription("EShop CI, GitHub Models Qodo Cover, and local AI triage")
   job.save()
+}
+
+// Optional one-time automation token request. The caller must remove the output after use.
+def apiTokenRequest = new File(home, ".request-bootstrap-api-token")
+if (apiTokenRequest.isFile()) {
+  def admin = User.getById("admin", false)
+  if (admin) {
+    def property = admin.getProperty(ApiTokenProperty.class)
+    def generated = property.tokenStore.generateNewToken("codex-bootstrap-${System.currentTimeMillis()}")
+    admin.save()
+    def output = new File(home, ".bootstrap-api-token-output")
+    output.text = generated.plainValue
+    output.setReadable(false, false)
+    output.setWritable(false, false)
+    output.setReadable(true, true)
+    output.setWritable(true, true)
+  }
+  apiTokenRequest.delete()
 }
 
 jenkins.save()
