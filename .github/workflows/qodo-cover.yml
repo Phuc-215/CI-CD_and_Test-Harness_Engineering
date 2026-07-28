@@ -5,6 +5,7 @@ on:
     branches:
       - demo
     types:
+      - labeled
       - opened
       - reopened
       - synchronize
