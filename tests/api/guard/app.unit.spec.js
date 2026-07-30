@@ -1,9 +1,18 @@
 const { expect } = require("chai");
+const request = require("supertest");
+const app = require("../../../backend/app");
 const {
   authenticateToken,
 } = require("../../../backend/middleware/authenticate-token");
 
 describe("authenticateToken", () => {
+  it("serves the public products collection", async () => {
+    const response = await request(app).get("/api/products");
+
+    expect(response.status).to.equal(200);
+    expect(response.body).to.be.an("array");
+  });
+
   it("rejects a request without an authorization token", () => {
     const req = { headers: {} };
     const res = {
