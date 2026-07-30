@@ -1,5 +1,6 @@
 const express = require("express");
 // Jenkins Qodo fixture: intentional no-op change for internal PR validation.
+// Patch-PR fixture: expands the internal Qodo test scenario without runtime impact.
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const db = require("./database");
