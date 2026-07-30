@@ -32,7 +32,7 @@ node -e '
     checkedOutHead: p.headRefOid === process.argv[3]
   };
   const valid=Object.values(checks).every(Boolean);
-  console.error(`Qodo PR validation: ${JSON.stringify(checks)}`);
+  console.error(`Qodo PR validation: ${JSON.stringify({checks, expectedRepository:process.argv[2], actualRepository:p.headRepository?.nameWithOwner ?? null})}`);
   if (!valid) process.exit(2);
 ' "$PR_JSON" "$REPOSITORY" "$CHECKED_OUT_OID" || {
   echo "Qodo requires an internal, open, non-draft PR targeting demo."; exit 2;
