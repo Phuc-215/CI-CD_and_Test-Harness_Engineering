@@ -201,12 +201,21 @@ pipeline {
       script {
         if (params.ENABLE_AI_TRIAGE) {
           sh 'mkdir -p reports'
-          writeFile file: 'reports/jenkins-console-tail.log', text: currentBuild.rawBuild.getLog(2000).join('\n')
+          // Do not use currentBuild.rawBuild.getLog(): Multibranch Jenkinsfiles
+          // run in the Groovy sandbox and that internal API needs an unsafe
+          // administrator approval. JUnit XML is the durable failure evidence
+          // emitted by every suite and is safe to read from the workspace.
+          sh '''
+            {
+              echo "Jenkins build ${BUILD_URL:-unknown} finished as ${currentBuildResult:-unsuccessful}"
+              find reports -type f -name '*.xml' -print -exec tail -n 300 {} \\;
+            } > reports/jenkins-triage-input.log
+          '''
           catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
             withCredentials([string(credentialsId: 'github-ci-pat', variable: 'GITHUB_TOKEN')]) {
               sh '''
                 node scripts/jenkins-ai-triage.js \
-                  --log reports/jenkins-console-tail.log \
+                  --log reports/jenkins-triage-input.log \
                   --output reports/ai-triage.md \
                   --repository "$(git config --get remote.origin.url)" \
                   --pr "${QODO_PR:-${CHANGE_ID:-}}"
@@ -215,7 +224,7 @@ pipeline {
           }
         }
       }
-      archiveArtifacts allowEmptyArchive: true, artifacts: 'reports/jenkins-console-tail.log,reports/ai-triage.md'
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'reports/jenkins-triage-input.log,reports/ai-triage.md'
     }
   }
 }
