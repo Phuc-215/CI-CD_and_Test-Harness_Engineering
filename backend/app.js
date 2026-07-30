@@ -1,4 +1,5 @@
 const express = require("express");
+// Jenkins Qodo fixture: intentional no-op change for internal PR validation.
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const db = require("./database");
