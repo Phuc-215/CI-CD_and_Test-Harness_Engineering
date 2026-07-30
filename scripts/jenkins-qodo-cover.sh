@@ -18,25 +18,27 @@ export GITHUB_API_KEY="$GH_TOKEN"
 export GITHUB_WORKSPACE="$WORKSPACE"
 
 PR_JSON="$(gh pr view "$PR_NUMBER" --repo "$REPOSITORY" --json state,isDraft,headRefName,headRefOid,headRepository,baseRefName,files)"
+HEAD_REPOSITORY="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.repo.full_name 2>/dev/null || true)"
 HEAD_REF="$(node -e 'console.log(JSON.parse(process.argv[1]).headRefName)' "$PR_JSON")"
 HEAD_OID="$(node -e 'console.log(JSON.parse(process.argv[1]).headRefOid)' "$PR_JSON")"
-REMOTE_HEAD_OID="$(gh api "repos/${REPOSITORY}/git/ref/heads/${HEAD_REF}" --jq .object.sha 2>/dev/null || true)"
+CHECKED_OUT_OID="$(git rev-parse HEAD)"
 
 if ! VALIDATION="$(node -e '
   const p=JSON.parse(process.argv[1]);
   const expectedRepository=process.argv[2];
-  const remoteHeadOid=process.argv[3];
+  const checkedOutOid=process.argv[3];
+  const headRepository=process.argv[4];
   const checks={
     open: p.state === "OPEN",
     nonDraft: !p.isDraft,
     targetsDemo: p.baseRefName === "demo",
-    internal: p.headRepository?.nameWithOwner === expectedRepository,
-    currentHead: p.headRefOid === remoteHeadOid
+    internal: headRepository.toLowerCase() === expectedRepository.toLowerCase(),
+    currentHead: p.headRefOid === checkedOutOid
   };
   const valid=Object.values(checks).every(Boolean);
-  console.log(JSON.stringify({checks, expectedRepository, actualRepository:p.headRepository?.nameWithOwner, prHeadOid:p.headRefOid, remoteHeadOid}));
+  console.log(JSON.stringify({checks, expectedRepository, actualRepository:headRepository || null, prHeadOid:p.headRefOid, checkedOutOid}));
   process.exit(valid ? 0 : 2);
-' "$PR_JSON" "$REPOSITORY" "$REMOTE_HEAD_OID")"; then
+' "$PR_JSON" "$REPOSITORY" "$CHECKED_OUT_OID" "$HEAD_REPOSITORY")"; then
   echo "Qodo PR validation: ${VALIDATION}"
   echo "Qodo requires an internal, open, non-draft PR targeting demo."
   exit 2
