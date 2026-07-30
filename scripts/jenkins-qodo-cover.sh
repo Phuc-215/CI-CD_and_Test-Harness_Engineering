@@ -24,8 +24,15 @@ CHECKED_OUT_OID="$(git rev-parse HEAD)"
 
 node -e '
   const p=JSON.parse(process.argv[1]);
-  const valid=p.state === "OPEN" && !p.isDraft && p.baseRefName === "demo" &&
-    p.headRepository?.nameWithOwner === process.argv[2] && p.headRefOid === process.argv[3];
+  const checks={
+    open: p.state === "OPEN",
+    nonDraft: !p.isDraft,
+    targetsDemo: p.baseRefName === "demo",
+    internal: p.headRepository?.nameWithOwner === process.argv[2],
+    checkedOutHead: p.headRefOid === process.argv[3]
+  };
+  const valid=Object.values(checks).every(Boolean);
+  console.error(`Qodo PR validation: ${JSON.stringify(checks)}`);
   if (!valid) process.exit(2);
 ' "$PR_JSON" "$REPOSITORY" "$CHECKED_OUT_OID" || {
   echo "Qodo requires an internal, open, non-draft PR targeting demo."; exit 2;
