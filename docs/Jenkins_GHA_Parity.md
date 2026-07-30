@@ -1,7 +1,9 @@
-# Jenkins / GitHub Actions parity
+# Jenkins demo runbook
 
-`Jenkinsfile` is the Jenkins implementation of the CI behavior in
-`.github/workflows/ci.yml`; it deliberately does not upload anything to Trunk.io.
+On branch `jenkins-demo`, `Jenkinsfile` is an independent Jenkins workflow.
+GitHub Actions may remain in the repository, but Jenkins does not invoke, poll,
+or consume GitHub Actions results. GitHub is used only for webhook delivery and
+for Qodo/AI-triage pull-request side effects.
 
 ## Jenkins setup
 
@@ -59,7 +61,7 @@ have separate filesystems.
 ## Qodo Cover and AI triage
 
 The Jenkins Generic Webhook Trigger recognizes eligible pull-request events and invokes
-Qodo Cover for an internal, open, non-draft PR targeting `demo`. Qodo may add only guard
+Qodo Cover for an internal, open, non-draft PR targeting `jenkins-demo`. Qodo may add only guard
 tests, validates coverage, then creates a patch PR. It requires secret-text credential
 `github-ci-pat` with repository write access and GitHub Models access.
 

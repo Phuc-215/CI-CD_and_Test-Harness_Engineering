@@ -3,6 +3,7 @@ set -euo pipefail
 
 PR_NUMBER="${1:?usage: jenkins-qodo-cover.sh <pr-number>}"
 : "${GH_TOKEN:?GH_TOKEN Jenkins credential is required}"
+BASE_BRANCH="${QODO_BASE_BRANCH:-jenkins-demo}"
 
 ORIGIN_URL="$(git remote get-url origin)"
 REPOSITORY="$(printf '%s' "$ORIGIN_URL" | sed -E 's#^https://github.com/##; s#^git@github.com:##; s#\.git$##')"
@@ -31,16 +32,16 @@ if ! VALIDATION="$(node -e '
   const checks={
     open: p.state === "OPEN",
     nonDraft: !p.isDraft,
-    targetsDemo: p.baseRefName === "demo",
+    targetsBaseBranch: p.baseRefName === process.argv[5],
     internal: headRepository.toLowerCase() === expectedRepository.toLowerCase(),
     currentHead: p.headRefOid === checkedOutOid
   };
   const valid=Object.values(checks).every(Boolean);
   console.log(JSON.stringify({checks, expectedRepository, actualRepository:headRepository || null, prHeadOid:p.headRefOid, checkedOutOid}));
   process.exit(valid ? 0 : 2);
-' "$PR_JSON" "$REPOSITORY" "$CHECKED_OUT_OID" "$HEAD_REPOSITORY")"; then
+' "$PR_JSON" "$REPOSITORY" "$CHECKED_OUT_OID" "$HEAD_REPOSITORY" "$BASE_BRANCH")"; then
   echo "Qodo PR validation: ${VALIDATION}"
-  echo "Qodo requires an internal, open, non-draft PR targeting demo."
+  echo "Qodo requires an internal, open, non-draft PR targeting ${BASE_BRANCH}."
   exit 2
 fi
 echo "Qodo PR validation: ${VALIDATION}"
@@ -63,7 +64,7 @@ if [ ! -x "$BINARY" ]; then
 fi
 
 "$BINARY" --mode pr --project-language javascript --project-root "$WORKSPACE" \
-  --diff-coverage false --branch demo --code-coverage-report-path "$WORKSPACE/coverage/cobertura-coverage.xml" \
+  --diff-coverage false --branch "$BASE_BRANCH" --code-coverage-report-path "$WORKSPACE/coverage/cobertura-coverage.xml" \
   --coverage-type cobertura --test-command "bash scripts/qodo-test-coverage.sh" \
   --model "${QODO_MODEL:-github/gpt-4.1}" --max-iterations 3 --desired-coverage "${QODO_DESIRED_COVERAGE:-70}" \
   --run-each-test-separately true --source-folder . --test-folder tests/api/guard \

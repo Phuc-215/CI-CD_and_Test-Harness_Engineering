@@ -1,6 +1,5 @@
-// Jenkins implementation of the blocking/allowed-fail policy in
-// .github/workflows/ci.yml.  Configure this as a Multibranch Pipeline so that
-// GitHub push and pull-request webhooks select the correct revision.
+// Standalone Jenkins CI for the jenkins-demo integration branch. GitHub only
+// supplies repository webhooks; CI, Qodo Cover and AI triage run in Jenkins.
 pipeline {
   agent any
 
@@ -45,7 +44,7 @@ pipeline {
           env.QODO_PR = params.PR_NUMBER?.trim() ?: (env.GH_PR_NUMBER ?: '')
           def automaticQodo = env.GH_PR_NUMBER &&
             ['opened', 'reopened', 'synchronize', 'ready_for_review', 'labeled'].contains(env.GH_ACTION) &&
-            env.GH_PR_BASE_REF == 'demo' && env.GH_PR_STATE == 'open' &&
+            env.GH_PR_BASE_REF == 'jenkins-demo' && env.GH_PR_STATE == 'open' &&
             env.GH_PR_DRAFT != 'true' && env.GH_PR_HEAD_REPO == env.GH_REPOSITORY
           env.QODO_ELIGIBLE = (params.RUN_MODE == 'QODO' || (params.RUN_MODE == 'AUTO' && automaticQodo)) ? 'true' : 'false'
           echo "Qodo eligible: ${env.QODO_ELIGIBLE}; PR: ${env.QODO_PR ?: 'none'}"
@@ -71,6 +70,7 @@ pipeline {
           sh '''
             set -eu
             export GH_TOKEN="$GITHUB_TOKEN"
+            export QODO_BASE_BRANCH="jenkins-demo"
             repository="$(git config --get remote.origin.url | sed -E 's#^https://github.com/##; s#^git@github.com:##; s#\\.git$##')"
             gh pr checkout "$QODO_PR" --repo "$repository" --force
             npm ci --cache .npm-cache --prefer-offline
