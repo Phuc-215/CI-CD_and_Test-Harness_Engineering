@@ -17,6 +17,12 @@ const LOGIN_LOCK_DURATION_MS = 180000;
 app.use(cors());
 app.use(bodyParser.json());
 
+// Lightweight health endpoint used by the internal Jenkins Qodo Cover fixture.
+// It has no database or external-service dependency.
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
 const userCarts = {};
 
 // ==========================================
