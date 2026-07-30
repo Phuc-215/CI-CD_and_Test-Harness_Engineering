@@ -22,14 +22,26 @@ HEAD_REF="$(node -e 'console.log(JSON.parse(process.argv[1]).headRefName)' "$PR_
 HEAD_OID="$(node -e 'console.log(JSON.parse(process.argv[1]).headRefOid)' "$PR_JSON")"
 REMOTE_HEAD_OID="$(gh api "repos/${REPOSITORY}/git/ref/heads/${HEAD_REF}" --jq .object.sha 2>/dev/null || true)"
 
-node -e '
+if ! VALIDATION="$(node -e '
   const p=JSON.parse(process.argv[1]);
-  const valid=p.state === "OPEN" && !p.isDraft && p.baseRefName === "demo" &&
-    p.headRepository?.nameWithOwner === process.argv[2] && p.headRefOid === process.argv[3];
-  if (!valid) process.exit(2);
-' "$PR_JSON" "$REPOSITORY" "$REMOTE_HEAD_OID" || {
-  echo "Qodo requires an internal, open, non-draft PR targeting demo."; exit 2;
-}
+  const expectedRepository=process.argv[2];
+  const remoteHeadOid=process.argv[3];
+  const checks={
+    open: p.state === "OPEN",
+    nonDraft: !p.isDraft,
+    targetsDemo: p.baseRefName === "demo",
+    internal: p.headRepository?.nameWithOwner === expectedRepository,
+    currentHead: p.headRefOid === remoteHeadOid
+  };
+  const valid=Object.values(checks).every(Boolean);
+  console.log(JSON.stringify({checks, expectedRepository, actualRepository:p.headRepository?.nameWithOwner, prHeadOid:p.headRefOid, remoteHeadOid}));
+  process.exit(valid ? 0 : 2);
+' "$PR_JSON" "$REPOSITORY" "$REMOTE_HEAD_OID")"; then
+  echo "Qodo PR validation: ${VALIDATION}"
+  echo "Qodo requires an internal, open, non-draft PR targeting demo."
+  exit 2
+fi
+echo "Qodo PR validation: ${VALIDATION}"
 
 node -e '
   const fs=require("fs"), path=require("path");
