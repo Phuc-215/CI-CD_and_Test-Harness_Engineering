@@ -1,67 +1,118 @@
-// T07 Seminar — Jenkins (TRADITIONAL CI) pipeline.
-// Mirrors .github/workflows/ci.yml stage-for-stage for a clean 1-to-1 comparison matrix.
-// GHA `continue-on-error: true`  <->  Jenkins catchError(stageResult: 'UNSTABLE').
-// GHA `upload-artifact`          <->  Jenkins junit + Coverage plugin.
+// Jenkins implementation of the blocking/allowed-fail policy in
+// .github/workflows/ci.yml.  Configure this as a Multibranch Pipeline so that
+// GitHub push and pull-request webhooks select the correct revision.
 pipeline {
   agent any
 
-  tools { nodejs 'node20' }        // configure a NodeJS 20 tool named 'node20' in Manage Jenkins > Tools
+  tools { nodejs 'node20' }
 
-  environment {
-    DB_PATH = 'backend/test.sqlite'  // same isolated DB the GitHub Actions jobs use
+  parameters {
+    choice(name: 'RUN_MODE', choices: ['AUTO', 'CI', 'QODO'], description: 'AUTO handles GitHub PR webhooks; QODO requires PR_NUMBER.')
+    string(name: 'PR_NUMBER', defaultValue: '', description: 'Pull request number for a manual Qodo Cover run.')
+    booleanParam(name: 'ENABLE_AI_TRIAGE', defaultValue: true,
+      description: 'On a failed build, produce a non-blocking GitHub Models triage report.')
+  }
+
+  triggers {
+    GenericTrigger(
+      genericVariables: [
+        [key: 'GH_ACTION', value: '$.action', defaultValue: ''],
+        [key: 'GH_PR_NUMBER', value: '$.number', defaultValue: ''],
+        [key: 'GH_PR_HEAD_REPO', value: '$.pull_request.head.repo.full_name', defaultValue: ''],
+        [key: 'GH_PR_BASE_REF', value: '$.pull_request.base.ref', defaultValue: ''],
+        [key: 'GH_PR_STATE', value: '$.pull_request.state', defaultValue: ''],
+        [key: 'GH_PR_DRAFT', value: '$.pull_request.draft', defaultValue: ''],
+        [key: 'GH_REPOSITORY', value: '$.repository.full_name', defaultValue: '']
+      ],
+      causeString: 'GitHub webhook: $GH_ACTION PR #$GH_PR_NUMBER',
+      tokenCredentialId: 'github-webhook-token',
+      printContributedVariables: false,
+      printPostContent: false,
+      silentResponse: false
+    )
   }
 
   options {
+    skipDefaultCheckout(true)
     timestamps()
-    timeout(time: 20, unit: 'MINUTES')
+    timeout(time: 30, unit: 'MINUTES')
   }
 
   stages {
+    stage('Classify Qodo event') {
+      steps {
+        script {
+          env.QODO_PR = params.PR_NUMBER?.trim() ?: (env.GH_PR_NUMBER ?: '')
+          def automaticQodo = env.GH_PR_NUMBER &&
+            ['opened', 'reopened', 'synchronize', 'ready_for_review', 'labeled'].contains(env.GH_ACTION) &&
+            env.GH_PR_BASE_REF == 'demo' && env.GH_PR_STATE == 'open' &&
+            env.GH_PR_DRAFT != 'true' && env.GH_PR_HEAD_REPO == env.GH_REPOSITORY
+          env.QODO_ELIGIBLE = (params.RUN_MODE == 'QODO' || (params.RUN_MODE == 'AUTO' && automaticQodo)) ? 'true' : 'false'
+          echo "Qodo eligible: ${env.QODO_ELIGIBLE}; PR: ${env.QODO_PR ?: 'none'}"
+        }
+      }
+    }
+
     stage('Checkout') {
       steps { checkout scm }
     }
 
-    // Jenkins reuses the SAME workspace across builds (unlike GHA's fresh runner per job),
-    // so a leftover test.sqlite (or worse, one left with stale/wrong ownership by a prior
-    // debugging session) makes initDatabase()'s reseed collide with old rows and crash with
-    // SQLITE_CONSTRAINT instead of a clean run. Also kill any backend server a previous,
-    // interrupted build may have left backgrounded on port 3000.
+    // Equivalent to qodo-cover.yml. The script repeats the PR validation so
+    // a forged webhook or a manual parameter cannot grant write access to a
+    // fork. Qodo itself may only add tests under tests/api/guard.
+    stage('Qodo Cover') {
+      when { expression { env.QODO_ELIGIBLE == 'true' } }
+      options { lock(resource: 'qodo-cover-github-models', inversePrecedence: true) }
+      steps {
+        script {
+          if (!env.QODO_PR) { error('Qodo Cover requires PR_NUMBER.') }
+        }
+        withCredentials([string(credentialsId: 'github-ci-pat', variable: 'GITHUB_TOKEN')]) {
+          sh '''
+            set -eu
+            export GH_TOKEN="$GITHUB_TOKEN"
+            repository="$(git config --get remote.origin.url | sed -E 's#^https://github.com/##; s#^git@github.com:##; s#\\.git$##')"
+            gh pr checkout "$QODO_PR" --repo "$repository" --force
+            npm ci --cache .npm-cache --prefer-offline
+            (cd backend && npm ci --cache ../.npm-cache --prefer-offline)
+            bash scripts/jenkins-qodo-cover.sh "$QODO_PR"
+          '''
+        }
+      }
+    }
+
+    // A Jenkins agent normally retains its workspace while a GitHub-hosted
+    // runner does not. Reset the two stateful resources before every build.
     stage('Clean workspace state') {
       steps {
         sh '''
           pkill -f "node backend/server.js" || true
           rm -f backend/test.sqlite
+          rm -rf reports coverage .nyc_output
+          mkdir -p reports
         '''
       }
     }
 
-    stage('NPM Install') {
-      // Cache parity note: GitHub Actions uses actions/setup-node cache:'npm' keyed on the
-      // lockfile hash; Jenkins reuses the mounted jenkins_home ~/.npm plus a local cache dir.
-      steps { sh 'npm ci --cache .npm-cache --prefer-offline' }
-    }
-
-    // NOT in ci.yml's backend-guard/backend-spec jobs (root `npm ci` only) — those jobs
-    // fail on a fresh checkout because backend/app.js requires express/jsonwebtoken/sqlite3,
-    // which live in backend/package.json, never installed by the root job. Added here so this
-    // Jenkins pipeline can actually complete; ci.yml is intentionally left as-is (out of scope).
-    stage('Install backend deps') {
-      steps { dir('backend') { sh 'npm ci' } }
-    }
-
-    stage('Guard (must pass)') {
+    stage('Install root and backend dependencies') {
       steps {
-        sh 'npm run test:guard -- --reporter mocha-junit-reporter --reporter-options mochaFile=reports/guard.xml'
+        sh 'npm ci --cache .npm-cache --prefer-offline'
+        dir('backend') { sh 'npm ci --cache ../.npm-cache --prefer-offline' }
       }
     }
 
-    stage('Coverage (Cobertura)') {
-      steps {
-        sh 'npx cross-env DB_PATH=backend/test.sqlite nyc --reporter=cobertura --reporter=text mocha tests/api/guard --timeout 20000'
-      }
+    // Equivalent to GHA backend-guard: this is the only backend gate that
+    // must fail the pipeline. test:coverage already emits guard.xml and
+    // cobertura-coverage.xml, so do not run the guard suite a second time.
+    stage('Backend Guard and Coverage (must pass)') {
+      steps { sh 'npm run test:coverage' }
     }
 
-    stage('Spec (allowed-fail)') {
+    stage('Generate coverage badge') {
+      steps { sh 'npx --no-install make-coverage-badge' }
+    }
+
+    stage('Backend Spec (allowed-fail)') {
       steps {
         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
           sh 'npm run test:spec'
@@ -69,80 +120,132 @@ pipeline {
       }
     }
 
-    stage('Flaky x10 (evidence)') {
+    // ci.yml currently executes this suite once. Its historical "x10"
+    // label is evidence-oriented, but a Jenkins run must not silently change
+    // the workflow's executed test count.
+    stage('Flaky Test Watch (allowed-fail)') {
       steps {
         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-          sh '''
-            mkdir -p reports/flaky
-            for i in $(seq 1 10); do
-              echo "===== Flaky run $i ====="
-              npm run test:flaky -- --reporter-options mochaFile=reports/flaky/run-$i.xml || true
-            done
-          '''
+          sh 'npm run test:flaky'
         }
       }
     }
 
-    // Mirrors the `web-smoke` GHA job (strategy.matrix: [frontend-web, frontend-admin]).
-    stage('Web & Admin Smoke Tests') {
-      matrix {
-        axes {
-          axis {
-            name 'APP'
-            values 'frontend-web', 'frontend-admin'
-          }
+    // GitHub Actions runs the matrix cells on independent runners. Run them
+    // sequentially here because both apps require one backend on port 3000
+    // and the same isolated SQLite path.
+    stage('Web Smoke Tests (must pass)') {
+      steps {
+        script { runPlaywrightSmoke('frontend-web', 'playwright-web.xml') }
+      }
+    }
+
+    stage('Admin Smoke Tests (must pass)') {
+      steps {
+        script { runPlaywrightSmoke('frontend-admin', 'playwright-admin.xml') }
+      }
+    }
+
+    stage('Mobile Smoke Tests (must pass)') {
+      steps {
+        dir('frontend-mobile') {
+          sh 'npm ci --legacy-peer-deps --cache ../.npm-cache --prefer-offline'
+          sh 'npm run test:ci'
         }
-        stages {
-          stage('Playwright Smoke') {
-            steps {
-              dir("${APP}") {
-                // npm install, not ci: this app's lockfile was generated with a newer npm
-                // than the one bundled with the Jenkins NodeJS 20 tool, which makes `npm ci`
-                // reject it as "out of sync" over optional platform deps (@emnapi/* wasm).
-                sh 'npm install'
-                // No --with-deps: the jenkins user has no sudo on this agent, unlike a
-                // GH Actions hosted runner. System libs for chromium are pre-installed
-                // once on the agent/image instead (see User_Guide.md §3.1).
-                sh 'npx playwright install chromium'
-              }
-              sh 'node backend/server.js &'
-              // Allowed-fail: a real SUT bug can fail this smoke test (e.g. Login.jsx's
-              // email input isn't type="email"). Mark the cell UNSTABLE instead of failing
-              // the whole build, so the pipeline still reaches Mobile Smoke + the final report.
-              dir("${APP}") {
-                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                  sh "PLAYWRIGHT_JUNIT_OUTPUT_NAME=../reports/playwright-${APP}.xml npx playwright test --reporter=junit,list"
-                }
-              }
+      }
+    }
+
+  }
+
+  post {
+    always {
+      sh 'pkill -f "node backend/server.js" || true'
+      junit allowEmptyResults: true, testResults: 'reports/**/*.xml'
+      recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'coverage/cobertura-coverage.xml']])
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'reports/**/*.xml,coverage/**'
+    }
+
+    success {
+      script {
+        // Mirrors the badge side effect of ci.yml, but never pushes from a PR
+        // build and never makes an otherwise successful build fail.
+        if (!env.CHANGE_ID && env.BRANCH_NAME) {
+          catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+            withCredentials([string(credentialsId: 'github-api-token', variable: 'GITHUB_TOKEN')]) {
+              sh '''
+                set +x
+                git config user.name "jenkins[bot]"
+                git config user.email "jenkins[bot]@users.noreply.github.com"
+                git add coverage/badge.svg
+                git diff --cached --quiet && exit 0
+                git commit -m "chore: update coverage badge [skip ci]"
+                remote_url="$(git config --get remote.origin.url)"
+                case "$remote_url" in
+                  https://github.com/*)
+                    authenticated_url="https://x-access-token:${GITHUB_TOKEN}@${remote_url#https://github.com/}"
+                    ;;
+                  *)
+                    echo "Coverage badge was committed locally; origin is not HTTPS GitHub, so it was not pushed."
+                    exit 0
+                    ;;
+                esac
+                git push "$authenticated_url" "HEAD:${BRANCH_NAME}"
+              '''
             }
           }
         }
       }
     }
 
-    // Mirrors the `mobile-smoke` GHA job. Allowed-fail for the same reason as the web/admin
-    // smoke stage: a real SUT bug here shouldn't block the pipeline from finishing/reporting.
-    stage('Mobile Smoke Tests') {
-      steps {
-        dir('frontend-mobile') {
+    unsuccessful {
+      script {
+        if (params.ENABLE_AI_TRIAGE) {
+          sh 'mkdir -p reports'
+          writeFile file: 'reports/jenkins-console-tail.log', text: currentBuild.rawBuild.getLog(2000).join('\n')
           catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-            // --legacy-peer-deps: this app's own react version and jest-expo's peer range
-            // genuinely conflict (a real, pre-existing lockfile issue, not a Jenkins artifact);
-            // same reason `npm install` replaced `npm ci` for the other frontend apps.
-            sh 'npm install --legacy-peer-deps'
-            sh 'npm test'
+            withCredentials([string(credentialsId: 'github-ci-pat', variable: 'GITHUB_TOKEN')]) {
+              sh '''
+                node scripts/jenkins-ai-triage.js \
+                  --log reports/jenkins-console-tail.log \
+                  --output reports/ai-triage.md \
+                  --repository "$(git config --get remote.origin.url)" \
+                  --pr "${QODO_PR:-${CHANGE_ID:-}}"
+              '''
+            }
           }
         }
       }
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'reports/jenkins-console-tail.log,reports/ai-triage.md'
     }
   }
+}
 
-  post {
-    always {
-      sh 'pkill -f "node backend/server.js" || true' // don't leak a backgrounded backend into the next build
-      junit allowEmptyResults: true, testResults: 'reports/**/*.xml'
-      // Requires the Coverage plugin. Comment out if not installed.
-      recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'coverage/cobertura-coverage.xml']])
+def runPlaywrightSmoke(String app, String report) {
+  dir(app) {
+    sh 'npm ci --legacy-peer-deps --cache ../.npm-cache --prefer-offline'
+    // The Jenkins agent image must contain Playwright's OS dependencies once;
+    // unlike a hosted GHA runner, an unprivileged Jenkins build cannot use
+    // `playwright install --with-deps`.
+    sh 'npx playwright install chromium'
+  }
+  sh '''
+    rm -f backend/test.sqlite
+    DB_PATH=backend/test.sqlite PORT=3000 nohup node backend/server.js > reports/backend-${BUILD_TAG}.log 2>&1 &
+    echo $! > reports/backend.pid
+    sleep 2
+    kill -0 "$(cat reports/backend.pid)"
+  '''
+  try {
+    dir(app) {
+      withEnv(["CI=true", "PLAYWRIGHT_JUNIT_OUTPUT_FILE=../reports/${report}"]) {
+        sh 'npx playwright test'
+      }
     }
+  } finally {
+    sh '''
+      if [ -f reports/backend.pid ]; then kill "$(cat reports/backend.pid)" 2>/dev/null || true; fi
+      pkill -f "node backend/server.js" || true
+      rm -f reports/backend.pid
+    '''
   }
 }

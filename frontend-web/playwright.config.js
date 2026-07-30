@@ -3,7 +3,7 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
   reporter: process.env.CI
-    ? [['list'], ['junit', { outputFile: '../reports/playwright.xml' }]]
+    ? [['list'], ['junit', { outputFile: process.env.PLAYWRIGHT_JUNIT_OUTPUT_FILE || '../reports/playwright.xml' }]]
     : 'list',
   use: {
     baseURL: 'http://localhost:5173',
