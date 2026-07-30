@@ -18,6 +18,7 @@ export GITHUB_API_KEY="$GH_TOKEN"
 export GITHUB_WORKSPACE="$WORKSPACE"
 
 PR_JSON="$(gh pr view "$PR_NUMBER" --repo "$REPOSITORY" --json state,isDraft,headRefName,headRefOid,headRepository,baseRefName,files)"
+HEAD_REPOSITORY="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.repo.full_name 2>/dev/null || true)"
 HEAD_REF="$(node -e 'console.log(JSON.parse(process.argv[1]).headRefName)' "$PR_JSON")"
 HEAD_OID="$(node -e 'console.log(JSON.parse(process.argv[1]).headRefOid)' "$PR_JSON")"
 CHECKED_OUT_OID="$(git rev-parse HEAD)"
@@ -28,13 +29,13 @@ node -e '
     open: p.state === "OPEN",
     nonDraft: !p.isDraft,
     targetsDemo: p.baseRefName === "demo",
-    internal: p.headRepository?.nameWithOwner?.toLowerCase() === process.argv[2].toLowerCase(),
+    internal: process.argv[4]?.toLowerCase() === process.argv[2].toLowerCase(),
     checkedOutHead: p.headRefOid === process.argv[3]
   };
   const valid=Object.values(checks).every(Boolean);
-  console.error(`Qodo PR validation: ${JSON.stringify({checks, expectedRepository:process.argv[2], actualRepository:p.headRepository?.nameWithOwner ?? null})}`);
+  console.error(`Qodo PR validation: ${JSON.stringify({checks, expectedRepository:process.argv[2], actualRepository:process.argv[4] || null})}`);
   if (!valid) process.exit(2);
-' "$PR_JSON" "$REPOSITORY" "$CHECKED_OUT_OID" || {
+' "$PR_JSON" "$REPOSITORY" "$CHECKED_OUT_OID" "$HEAD_REPOSITORY" || {
   echo "Qodo requires an internal, open, non-draft PR targeting demo."; exit 2;
 }
 
