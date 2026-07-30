@@ -20,14 +20,14 @@ export GITHUB_WORKSPACE="$WORKSPACE"
 PR_JSON="$(gh pr view "$PR_NUMBER" --repo "$REPOSITORY" --json state,isDraft,headRefName,headRefOid,headRepository,baseRefName,files)"
 HEAD_REF="$(node -e 'console.log(JSON.parse(process.argv[1]).headRefName)' "$PR_JSON")"
 HEAD_OID="$(node -e 'console.log(JSON.parse(process.argv[1]).headRefOid)' "$PR_JSON")"
-REMOTE_HEAD_OID="$(gh api "repos/${REPOSITORY}/git/ref/heads/${HEAD_REF}" --jq .object.sha 2>/dev/null || true)"
+CHECKED_OUT_OID="$(git rev-parse HEAD)"
 
 node -e '
   const p=JSON.parse(process.argv[1]);
   const valid=p.state === "OPEN" && !p.isDraft && p.baseRefName === "demo" &&
     p.headRepository?.nameWithOwner === process.argv[2] && p.headRefOid === process.argv[3];
   if (!valid) process.exit(2);
-' "$PR_JSON" "$REPOSITORY" "$REMOTE_HEAD_OID" || {
+' "$PR_JSON" "$REPOSITORY" "$CHECKED_OUT_OID" || {
   echo "Qodo requires an internal, open, non-draft PR targeting demo."; exit 2;
 }
 
