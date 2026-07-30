@@ -28,7 +28,7 @@ node -e '
     open: p.state === "OPEN",
     nonDraft: !p.isDraft,
     targetsDemo: p.baseRefName === "demo",
-    internal: p.headRepository?.nameWithOwner === process.argv[2],
+    internal: p.headRepository?.nameWithOwner?.toLowerCase() === process.argv[2].toLowerCase(),
     checkedOutHead: p.headRefOid === process.argv[3]
   };
   const valid=Object.values(checks).every(Boolean);
