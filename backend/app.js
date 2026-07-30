@@ -12,6 +12,8 @@ const app = express();
 const PORT = 3000;
 const LOGIN_LOCK_DURATION_MS = 180000;
 
+// Qodo trigger fixture: this internal PR intentionally changes no runtime behavior.
+
 app.use(cors());
 app.use(bodyParser.json());
 
