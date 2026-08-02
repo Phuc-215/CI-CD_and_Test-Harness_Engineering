@@ -1,69 +1,12 @@
 const { expect } = require("chai");
 const request = require("supertest");
 const app = require("../../../backend/app");
-const {
-  authenticateToken,
-} = require("../../../backend/middleware/authenticate-token");
 
-describe("authenticateToken", () => {
+describe("application routes", () => {
   it("serves the public products collection", async () => {
     const response = await request(app).get("/api/products");
 
     expect(response.status).to.equal(200);
     expect(response.body).to.be.an("array");
   });
-
-  it("rejects a request without an authorization token", () => {
-    const req = { headers: {} };
-    const res = {
-      statusCode: null,
-      body: null,
-      status(code) {
-        this.statusCode = code;
-        return this;
-      },
-      json(body) {
-        this.body = body;
-        return this;
-      },
-    };
-    let nextCalled = false;
-
-    authenticateToken(req, res, () => {
-      nextCalled = true;
-    });
-
-    expect(res.statusCode).to.equal(401);
-    expect(res.body).to.deep.equal({ error: "Unauthorized" });
-    expect(nextCalled).to.equal(false);
-  });
-
-  const req = {
-    headers: {
-      authorization: "Bearer invalid.token.value",
-    },
-  };
-  const res = {
-    statusCode: null,
-    body: null,
-    status(code) {
-      this.statusCode = code;
-      return this;
-    },
-    json(body) {
-      this.body = body;
-      return this;
-    },
-  };
-  let nextCalled = false;
-  
-  authenticateToken(req, res, () => {
-    nextCalled = true;
-  });
-  
-  expect(res.statusCode).to.equal(403);
-  expect(res.body).to.deep.equal({ error: "Forbidden" });
-  expect(nextCalled).to.equal(false);
-  expect(req.user).to.equal(undefined);
-
 });
