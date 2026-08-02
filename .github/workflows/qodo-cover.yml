@@ -1,19 +1,23 @@
-name: Qodo Cover
+name: Qodo Cover with NVIDIA NIM
 
 on:
-  pull_request:
-    branches:
-      - gha
+  workflow_dispatch:
+    inputs:
+      desired_coverage:
+        description: Desired coverage percentage
+        required: false
+        default: "70"
 
 permissions:
   contents: write
   pull-requests: write
-  models: read
 
 jobs:
-  generate-tests:
-    name: Generate backend tests
+  run-qodo-cover:
     runs-on: ubuntu-22.04
+    env:
+      COVERAGE_FILE: /tmp/qodo-cover.coverage
+      PYTHONDONTWRITEBYTECODE: "1"
 
     steps:
       - name: Check out repository
@@ -21,42 +25,32 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          node-version: 20
-          cache: npm
+          python-version: "3.12"
 
-      - name: Install test harness dependencies
-        run: npm ci
-
-      - name: Install backend dependencies
-        working-directory: backend
-        run: npm ci --build-from-source
+      - name: Install test dependencies
+        run: python -m pip install pytest pytest-cov
 
       - name: Generate tests with Qodo Cover
-        uses: qodo-ai/qodo-ci/.github/actions/qodo-cover-pr@v0.1.16
-        env:
-          NVIDIA_NIM_API_KEY: ${{ secrets.NVIDIA_NIM_API_KEY }}
+        uses: qodo-ai/qodo-ci/.github/actions/qodo-cover@v0.1.16
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: gha
-          diff_coverage: false
-          project_language: javascript
-          project_root: .
-          source_folder: backend/
-          test_folder: tests/api/guard
-          test_command: bash scripts/qodo-test-coverage.sh
-          code_coverage_report_path: coverage/cobertura-coverage.xml
+          branch: ${{ github.ref_name }}
+          project_language: python
+          project_root: qodo_demo
+          code_coverage_report_path: qodo_demo/coverage.xml
           coverage_type: cobertura
+          test_command: pytest -p no:cacheprovider test_pricing.py --cov=pricing --cov-report=xml:coverage.xml --cov-report=term
           model: nvidia_nim/nvidia/llama-3.3-nemotron-super-49b-v1.5
-          desired_coverage: 70
           max_iterations: 3
+          desired_coverage: ${{ inputs.desired_coverage }}
           run_each_test_separately: true
+          source_folder: .
+          test_folder: .
           additional_instructions: >-
-            Follow the existing Mocha, Chai, and Supertest conventions.
-            Generate new tests for changed production files under backend only.
-            Treat tests/helpers/supertest-app.js as test infrastructure, not as
-            the production source file whose coverage should be improved.
-            Add tests only; do not modify production code.
-            Do not call real external services.
+            Keep generated tests short and only edit test_pricing.py.
+            Do not modify pricing.py.
+        env:
+          NVIDIA_NIM_API_KEY: ${{ secrets.NVIDIA_NIM_API_KEY }}
