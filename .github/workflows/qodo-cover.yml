@@ -14,7 +14,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  models: read
 
 jobs:
   generate-tests:
@@ -47,7 +46,7 @@ jobs:
       - name: Generate tests with Qodo Cover
         uses: qodo-ai/qodo-ci/.github/actions/qodo-cover-pr@v0.1.16
         env:
-          GITHUB_API_KEY: ${{ secrets.GITHUB_TOKEN }}
+          NVIDIA_NIM_API_KEY: ${{ secrets.NVIDIA_NIM_API_KEY }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: demo
@@ -59,7 +58,7 @@ jobs:
           test_command: bash scripts/qodo-test-coverage.sh
           code_coverage_report_path: coverage/cobertura-coverage.xml
           coverage_type: cobertura
-          model: github/gpt-4.1
+          model: nvidia_nim/nvidia/llama-3.3-nemotron-super-49b-v1.5
           desired_coverage: 70
           max_iterations: 3
           run_each_test_separately: true
