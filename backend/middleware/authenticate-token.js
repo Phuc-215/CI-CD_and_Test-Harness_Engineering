@@ -4,7 +4,8 @@ const SECRET_KEY = "super_secret_key_that_should_not_be_here";
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const [scheme, token] = authHeader ? authHeader.split(" ") : [];
+  if (scheme !== "Bearer") return res.status(401).json({ error: "Unauthorized" });
   if (token == null) return res.status(401).json({ error: "Unauthorized" });
 
   jwt.verify(token, SECRET_KEY, (err, user) => {
