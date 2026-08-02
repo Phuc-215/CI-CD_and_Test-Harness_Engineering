@@ -75,6 +75,7 @@ pipeline {
               export GH_TOKEN="$GITHUB_TOKEN"
               export QODO_BASE_BRANCH="jenkins-demo"
               export QODO_MODEL="nvidia_nim/nvidia/llama-3.3-nemotron-super-49b-v1.5"
+              export QODO_DESIRED_COVERAGE="90"
             repository="$(git config --get remote.origin.url | sed -E 's#^https://github.com/##; s#^git@github.com:##; s#\\.git$##')"
             gh pr checkout "$QODO_PR" --repo "$repository" --force
             npm ci --cache .npm-cache --prefer-offline
