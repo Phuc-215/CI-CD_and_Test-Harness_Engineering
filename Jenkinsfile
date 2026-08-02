@@ -9,7 +9,7 @@ pipeline {
     choice(name: 'RUN_MODE', choices: ['AUTO', 'CI', 'QODO'], description: 'AUTO handles GitHub PR webhooks; QODO requires PR_NUMBER.')
     string(name: 'PR_NUMBER', defaultValue: '', description: 'Pull request number for a manual Qodo Cover run.')
     booleanParam(name: 'ENABLE_AI_TRIAGE', defaultValue: true,
-      description: 'On a failed build, produce a non-blocking GitHub Models triage report.')
+        description: 'On a failed build, produce a non-blocking NVIDIA NIM triage report.')
   }
 
   triggers {
@@ -217,8 +217,12 @@ pipeline {
             } > reports/jenkins-triage-input.log
           '''
           catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-            withCredentials([string(credentialsId: 'github-ci-pat', variable: 'GITHUB_TOKEN')]) {
+            withCredentials([
+              string(credentialsId: 'github-ci-pat', variable: 'GITHUB_TOKEN'),
+              string(credentialsId: 'nvidia-nim-api-key', variable: 'NVIDIA_NIM_API_KEY')
+            ]) {
               sh '''
+                export NVIDIA_NIM_MODEL="nvidia/llama-3.3-nemotron-super-49b-v1.5"
                 node scripts/jenkins-ai-triage.js \
                   --log reports/jenkins-triage-input.log \
                   --output reports/ai-triage.md \
