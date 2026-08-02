@@ -66,11 +66,15 @@ pipeline {
         script {
           if (!env.QODO_PR) { error('Qodo Cover requires PR_NUMBER.') }
         }
-        withCredentials([string(credentialsId: 'github-ci-pat', variable: 'GITHUB_TOKEN')]) {
+        withCredentials([
+          string(credentialsId: 'github-ci-pat', variable: 'GITHUB_TOKEN'),
+          string(credentialsId: 'openai-api-key', variable: 'OPENAI_API_KEY')
+        ]) {
           sh '''
-            set -eu
-            export GH_TOKEN="$GITHUB_TOKEN"
-            export QODO_BASE_BRANCH="jenkins-demo"
+              set -eu
+              export GH_TOKEN="$GITHUB_TOKEN"
+              export QODO_BASE_BRANCH="jenkins-demo"
+              export QODO_MODEL="gpt-4.1"
             repository="$(git config --get remote.origin.url | sed -E 's#^https://github.com/##; s#^git@github.com:##; s#\\.git$##')"
             gh pr checkout "$QODO_PR" --repo "$repository" --force
             npm ci --cache .npm-cache --prefer-offline
