@@ -73,7 +73,7 @@ git status --porcelain | sort > "$STATUS_BEFORE"
   --diff-coverage false --branch "$BASE_BRANCH" --code-coverage-report-path "$WORKSPACE/coverage/cobertura-coverage.xml" \
   --coverage-type cobertura --test-command "bash scripts/qodo-test-coverage.sh" \
   --model "${QODO_MODEL:-github/gpt-4.1}" --max-iterations 3 --desired-coverage "${QODO_DESIRED_COVERAGE:-70}" \
-  --run-each-test-separately true --source-folder . --test-folder tests/api/guard/qodo-health \
+  --run-each-test-separately true --source-folder backend --test-folder tests/api/guard \
   --report-dir "$REPORT_DIR" --modified-files-json "$MODIFIED_JSON" \
   --additional-instructions "Follow existing Mocha, Chai and Supertest conventions. Add tests only under tests/api/guard. Never modify production code or call external services."
 
