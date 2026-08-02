@@ -68,13 +68,13 @@ pipeline {
         }
         withCredentials([
           string(credentialsId: 'github-ci-pat', variable: 'GITHUB_TOKEN'),
-          string(credentialsId: 'openai-api-key', variable: 'OPENAI_API_KEY')
+          string(credentialsId: 'nvidia-nim-api-key', variable: 'NVIDIA_NIM_API_KEY')
         ]) {
           sh '''
               set -eu
               export GH_TOKEN="$GITHUB_TOKEN"
               export QODO_BASE_BRANCH="jenkins-demo"
-              export QODO_MODEL="gpt-4.1"
+              export QODO_MODEL="nvidia_nim/nvidia/llama-3.3-nemotron-super-49b-v1.5"
             repository="$(git config --get remote.origin.url | sed -E 's#^https://github.com/##; s#^git@github.com:##; s#\\.git$##')"
             gh pr checkout "$QODO_PR" --repo "$repository" --force
             npm ci --cache .npm-cache --prefer-offline
