@@ -4,7 +4,7 @@ const {
 } = require("../../../backend/middleware/authenticate-token");
 
 describe("authenticateToken", () => {
-  it("rejects a request without an authorization token", () => {
+  it("Rejects a request without an authorization token", () => {
     const req = { headers: {} };
     const res = {
       statusCode: null,

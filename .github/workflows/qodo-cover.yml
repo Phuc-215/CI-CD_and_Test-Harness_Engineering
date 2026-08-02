@@ -1,15 +1,12 @@
 name: Qodo Cover
 
 on:
+  push:
+    branches:
+      - gha
   pull_request:
     branches:
       - gha
-    types:
-      - labeled
-      - opened
-      - reopened
-      - synchronize
-      - ready_for_review
 
 permissions:
   contents: write
