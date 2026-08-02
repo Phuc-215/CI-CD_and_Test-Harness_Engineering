@@ -3,7 +3,7 @@ name: Qodo Cover
 on:
   pull_request:
     branches:
-      - demo
+      - gha
     types:
       - labeled
       - opened
@@ -50,11 +50,11 @@ jobs:
           GITHUB_API_KEY: ${{ secrets.GITHUB_TOKEN }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: demo
+          branch: gha
           diff_coverage: false
           project_language: javascript
           project_root: .
-          source_folder: .
+          source_folder: backend/
           test_folder: tests/api/guard
           test_command: bash scripts/qodo-test-coverage.sh
           code_coverage_report_path: coverage/cobertura-coverage.xml
