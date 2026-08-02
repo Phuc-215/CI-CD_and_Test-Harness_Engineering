@@ -1,9 +1,6 @@
 name: Qodo Cover
 
 on:
-  push:
-    branches:
-      - gha
   pull_request:
     branches:
       - gha
