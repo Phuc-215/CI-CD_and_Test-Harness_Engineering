@@ -76,7 +76,7 @@ TEST_CHANGED=false
 for file in "${CHANGED[@]}"; do
   case "$file" in
     tests/api/guard/*) TEST_CHANGED=true ;;
-    .cache/*|coverage/*|reports/*|*.sqlite|*.json|*.log|*.xml|*.html) ;;
+    .cache/*|coverage/*|reports/*|*.sqlite|*.json|*.log|*.xml|*.html|cover_agent_unit_test_runs.db) ;;
     *) echo "Qodo attempted an out-of-scope change: $file"; exit 3 ;;
   esac
 done
