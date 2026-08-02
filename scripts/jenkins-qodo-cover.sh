@@ -63,15 +63,21 @@ if [ ! -x "$BINARY" ]; then
   chmod +x "$BINARY"
 fi
 
+# Jenkins workspaces can retain reports, browser logs and pid files from an
+# earlier build. Validate only changes introduced after this point, so that
+# stale workspace state cannot be mistaken for a Qodo source-code change.
+STATUS_BEFORE="$REPORT_DIR/git-status-before.txt"
+git status --porcelain | sort > "$STATUS_BEFORE"
+
 "$BINARY" --mode pr --project-language javascript --project-root "$WORKSPACE" \
   --diff-coverage false --branch "$BASE_BRANCH" --code-coverage-report-path "$WORKSPACE/coverage/cobertura-coverage.xml" \
   --coverage-type cobertura --test-command "bash scripts/qodo-test-coverage.sh" \
   --model "${QODO_MODEL:-github/gpt-4.1}" --max-iterations 3 --desired-coverage "${QODO_DESIRED_COVERAGE:-70}" \
-  --run-each-test-separately true --source-folder . --test-folder tests/api/guard \
+  --run-each-test-separately true --source-folder backend --test-folder tests/api/guard/qodo-request-label \
   --report-dir "$REPORT_DIR" --modified-files-json "$MODIFIED_JSON" \
   --additional-instructions "Follow existing Mocha, Chai and Supertest conventions. Add tests only under tests/api/guard. Never modify production code or call external services."
 
-mapfile -t CHANGED < <(git status --porcelain | sed -E 's/^...//')
+mapfile -t CHANGED < <(comm -13 "$STATUS_BEFORE" <(git status --porcelain | sort) | sed -E 's/^...//')
 TEST_CHANGED=false
 for file in "${CHANGED[@]}"; do
   case "$file" in
