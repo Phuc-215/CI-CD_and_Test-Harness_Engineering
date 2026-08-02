@@ -16,10 +16,6 @@ permissions:
 jobs:
   generate-tests:
     name: Generate backend tests
-    if: >-
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.state == 'open' &&
-      github.event.pull_request.draft == false
     runs-on: ubuntu-22.04
 
     steps:
