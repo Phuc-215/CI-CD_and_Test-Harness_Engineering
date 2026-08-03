@@ -1,7 +1,7 @@
 # Jenkins / GitHub Actions parity
 
 `Jenkinsfile` is the Jenkins implementation of the CI behavior in
-`.github/workflows/ci.yml`; it deliberately does not upload anything to Trunk.io.
+`.github/workflows/ci.yml`.
 
 ## Jenkins setup
 

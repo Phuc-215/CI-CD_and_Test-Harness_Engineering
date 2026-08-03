@@ -25,14 +25,6 @@ jobs:
         working-directory: backend
         run: npm ci
       - run: npm run test:coverage
-      - name: Upload guard test results to Trunk.io
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: trunk-io/analytics-uploader@v1
-        with:
-          junit-paths: reports/guard.xml
-          org-slug: ${{ secrets.TRUNK_ORG_URL_SLUG }}
-          token: ${{ secrets.TRUNK_API_TOKEN }}
       - name: Generate Coverage Badge
         run: npx make-coverage-badge
       - name: Commit Coverage Badge
@@ -56,14 +48,6 @@ jobs:
         working-directory: backend
         run: npm ci
       - run: npm run test:spec
-      - name: Upload spec test results to Trunk.io
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: trunk-io/analytics-uploader@v1
-        with:
-          junit-paths: reports/spec.xml
-          org-slug: ${{ secrets.TRUNK_ORG_URL_SLUG }}
-          token: ${{ secrets.TRUNK_API_TOKEN }}
       - name: Upload Spec Results
         uses: actions/upload-artifact@v4
         if: always()
@@ -87,14 +71,6 @@ jobs:
         run: npm ci
       - name: Run flaky suite
         run: npm run test:flaky
-      - name: Upload flaky test results to Trunk.io
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: trunk-io/analytics-uploader@v1
-        with:
-          junit-paths: reports/flaky.xml
-          org-slug: ${{ secrets.TRUNK_ORG_URL_SLUG }}
-          token: ${{ secrets.TRUNK_API_TOKEN }}
       - name: Upload flaky result (per run)
         uses: actions/upload-artifact@v4
         if: always()
@@ -140,15 +116,6 @@ jobs:
         working-directory: ${{ matrix.app }}
         run: npx playwright test
 
-      - name: Upload Playwright results to Trunk.io
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: trunk-io/analytics-uploader@v1
-        with:
-          junit-paths: reports/playwright.xml
-          org-slug: ${{ secrets.TRUNK_ORG_URL_SLUG }}
-          token: ${{ secrets.TRUNK_API_TOKEN }}
-
   mobile-smoke:
     name: Mobile Smoke Tests
     runs-on: ubuntu-latest
@@ -166,12 +133,3 @@ jobs:
       - name: Run Jest Tests
         working-directory: frontend-mobile
         run: npm run test:ci
-
-      - name: Upload mobile test results to Trunk.io
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: trunk-io/analytics-uploader@v1
-        with:
-          junit-paths: reports/mobile.xml
-          org-slug: ${{ secrets.TRUNK_ORG_URL_SLUG }}
-          token: ${{ secrets.TRUNK_API_TOKEN }}
