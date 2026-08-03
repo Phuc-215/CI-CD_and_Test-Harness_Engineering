@@ -13,7 +13,7 @@ jobs:
     name: Backend Guard Tests (must pass)
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -27,11 +27,11 @@ jobs:
       - run: npm run test:coverage
       - name: Generate Coverage Badge
         run: npx make-coverage-badge
-      - name: Commit Coverage Badge
-        uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Upload Coverage Badge
+        uses: actions/upload-artifact@v4
         with:
-          commit_message: "chore: update coverage badge [skip ci]"
-          file_pattern: "coverage/badge.svg"
+          name: coverage-badge
+          path: coverage/badge.svg
 
   backend-spec:
     name: Backend Spec Tests (allowed-fail)
