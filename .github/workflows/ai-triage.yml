@@ -10,14 +10,14 @@ name: AI Triage (auto, exploratory)
 
 on:
   workflow_run:
-    workflows: ["*"]
+    workflows: ["CI/CD Pipeline", "Qodo Cover"]
     types: [completed]
   # Manual test harness: run against a specific failed run WITHOUT merging to default branch.
   # Get a run id from: gh run list --workflow "CI/CD Pipeline"
   workflow_dispatch:
     inputs:
       run_id:
-        description: "Workflow run ID of a failed CI/CD Pipeline run to analyze"
+        description: "Run ID of a failed workflow to analyze"
         required: true
 
 permissions:
