@@ -40,7 +40,7 @@ export default function Home() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Danh sách sản phẩm</h1>
+        <h1 className="text-3xl font-bold">List sản phẩm</h1>
         <form onSubmit={handleSearch} className="flex gap-2">
           <input
             type="text"
