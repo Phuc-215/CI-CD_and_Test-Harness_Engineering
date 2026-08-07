@@ -36,7 +36,7 @@ jobs:
           run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id }}
           # NVIDIA NIM exposes an OpenAI-compatible API.
           llm-provider: openai
-          llm-model: meta/llama-3.3-70b-instruct
+          llm-model: nvidia/llama-3.3-nemotron-super-49b-v1.5
           llm-api-key: ${{ secrets.NVIDIA_NIM_API_KEY }}
           llm-base-url: https://integrate.api.nvidia.com/v1
           analyze-pr-context: 'true'
