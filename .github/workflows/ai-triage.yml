@@ -1,0 +1,43 @@
+name: AI Triage (auto, exploratory)
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types: [completed]
+  # Manual test harness: run against a specific failed run WITHOUT merging to default branch.
+  # Get a run id from: gh run list --workflow "CI/CD Pipeline"
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Run ID of a failed workflow to analyze"
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: write   # allows optional PR comment
+  actions: read          # read logs/artifacts of the triggering run
+
+jobs:
+  ai-triage:
+    name: Analyze completed workflow (NVIDIA NIM)
+    # Do not recursively triage this workflow's own completion.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.name != 'AI Triage (auto, exploratory)' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: AI failure analysis
+        id: triage
+        uses: calebevans/gha-failure-analysis@v0.2.0
+        continue-on-error: false
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Manual dispatch supplies run_id; auto path uses the triggering run's id.
+          run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id }}
+          # NVIDIA NIM exposes an OpenAI-compatible API.
+          llm-provider: openai
+          llm-model: meta/llama-3.3-70b-instruct
+          llm-api-key: ${{ secrets.NVIDIA_NIM_API_KEY }}
+          llm-base-url: https://integrate.api.nvidia.com/v1
+          analyze-pr-context: 'true'
+          post-pr-comment: 'true'
